@@ -1,0 +1,71 @@
+# Treo Wallet — Registro de uso de IA
+
+**Estado:** Inicial  
+**Versión:** 0.1  
+**Fecha de inicio:** 10 de noviembre de 2026
+
+## 1. Objetivo
+
+Registrar de forma transparente el uso de herramientas de inteligencia artificial durante el desarrollo de Treo Wallet, incluyendo instrucciones relevantes, sugerencias aceptadas o rechazadas, verificaciones humanas y correcciones.
+
+Este archivo se actualizará durante el proyecto. No registrar como ejecutado algo que solamente se haya propuesto.
+
+## 2. Herramientas previstas
+
+| Herramienta | Uso previsto | Estado |
+|---|---|---|
+| OpenCode | Asistencia para análisis, diseño, generación y revisión de código | Por utilizar / confirmar versión y modelo |
+| ChatGPT | Análisis de requisitos, arquitectura, planificación y revisión técnica | Utilizado |
+| Otras herramientas | Se registrarán si se incorporan | No definidas |
+
+## 3. Registro de sesiones
+
+### Sesión 001 — Análisis y planificación inicial
+
+- **Fecha:** 10 de noviembre de 2026
+- **Herramienta:** ChatGPT
+- **Objetivo:** Analizar la prueba técnica, proponer arquitectura y organizar el trabajo.
+- **Instrucción resumida:** Analizar requisitos de una billetera digital fintech y proponer una solución técnica viable.
+- **Resultado:** Se propuso un monolito modular con API compartida por React web y React Native/Expo móvil; PostgreSQL como base de datos; ledger de doble partida; transacciones e idempotencia para transferencias.
+- **Decisiones aceptadas:** Priorizar integridad financiera, pruebas con PostgreSQL real, control de concurrencia, trazabilidad de commits y documentación previa al código.
+- **Sugerencias rechazadas:** Ninguna registrada hasta el momento.
+- **Verificación humana:** El usuario revisará y aprobará las decisiones antes de implementarlas.
+- **Correcciones:** Ninguna registrada.
+
+### Sesión 002 — Estructura inicial del repositorio
+
+- **Fecha:** 10 de noviembre de 2026
+- **Herramienta:** ChatGPT
+- **Objetivo:** Definir estructura inicial y orden de creación del proyecto.
+- **Resultado:** Se propuso un monorepo con `api`, `web`, `mobile`, `packages/shared`, `specs` y `docs`; se indicó crear las especificaciones y hacer un commit antes de inicializar el código.
+- **Decisiones aceptadas:** Crear primero los documentos de especificación y después configurar npm workspaces y la API.
+- **Sugerencias rechazadas:** Ninguna registrada hasta el momento.
+- **Verificación humana:** Pendiente de ejecutar los comandos y verificar la estructura local.
+- **Correcciones:** Ninguna registrada.
+
+## 4. Plantilla para nuevas sesiones
+
+Duplicar esta sección por cada sesión relevante:
+
+### Sesión XXX — Título
+
+- **Fecha:**
+- **Herramienta y modelo/versión:**
+- **Objetivo:**
+- **Instrucción o prompt clave:**
+- **Resultado generado:**
+- **Sugerencias aceptadas y motivo:**
+- **Sugerencias rechazadas y motivo:**
+- **Verificación humana realizada:**
+- **Errores detectados:**
+- **Correcciones aplicadas:**
+- **Archivos o commits afectados:**
+
+## 5. Criterios de registro
+
+- Registrar prompts relevantes, no necesariamente cada interacción trivial.
+- Identificar qué contenido fue generado o modificado con IA.
+- No aceptar código generado sin revisión.
+- Ejecutar pruebas y verificaciones antes de marcar una tarea como completada.
+- Registrar sugerencias rechazadas y explicar brevemente el motivo.
+- No inventar resultados, pruebas, commits ni verificaciones.
