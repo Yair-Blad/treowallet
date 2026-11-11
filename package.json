@@ -1,0 +1,11 @@
+
+{
+  "name": "treowallet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TreoWallet - Monorepo",
+  "scripts": {
+    "dev:web": "npm --prefix web run dev",
+    "build:web": "npm --prefix web run build"
+  }
+}
