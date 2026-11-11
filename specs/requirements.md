@@ -1,7 +1,7 @@
 # Treo Wallet — Requisitos del sistema
 
 **Estado:** En desarrollo  
-**Versión:** 0.2  
+**Versión:** 0.3  
 **Fecha:** 11 de noviembre de 2026  
 **Producto:** Billetera digital en pesos mexicanos (MXN)
 
@@ -35,6 +35,8 @@ El objetivo es entregar una solución funcional que demuestre conocimientos de d
 - Mostrar el saldo disponible de cada cuenta en MXN.
 - Impedir que una operación deje el saldo negativo.
 - Mantener consistencia entre los saldos y los movimientos contables.
+- Registrar cada transferencia mediante un movimiento de débito en la cuenta de origen y uno de crédito en la cuenta de destino.
+- Garantizar que ambos movimientos tengan el mismo importe y que la actualización de los saldos se realice dentro de la misma transacción de base de datos.
 - Permitir consultar los movimientos asociados a cada cuenta.
 - Actualizar los saldos únicamente mediante operaciones financieras válidas.
 

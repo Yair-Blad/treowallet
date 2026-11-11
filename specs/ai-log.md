@@ -71,6 +71,42 @@ Este archivo se actualizará durante el proyecto. No registrar como ejecutado al
 - **Commit propuesto:** feat(web): implementar interfaz del dashboard de TreoWallet
 - **Estado del commit:** Ejecutado.
 
+### Sesión 004 — Conexión a PostgreSQL y pruebas iniciales de API
+
+- **Fecha:** 11 de noviembre de 2026
+- **Herramienta y modelo/versión:** ChatGPT (GPT-6) y PowerShell.
+- **Objetivo:** Configurar y verificar la comunicación entre el backend de Treo Wallet y PostgreSQL, así como realizar las primeras pruebas de autenticación.
+- **Instrucción o prompt clave:** Configurar la conexión a PostgreSQL, verificar el estado del servidor mediante endpoints de salud y probar el inicio de sesión desde la API.
+
+- **Resultado generado:**
+    - Se verificó la comunicación del backend con PostgreSQL.
+    - El endpoint `GET /api/health` respondió correctamente.
+    - Se confirmó el estado de conexión a la base de datos mediante la respuesta `database: "Conectada"`.
+    - Se realizaron pruebas de autenticación mediante `POST /api/auth/login`.
+    - El inicio de sesión respondió exitosamente y generó un JWT.
+    - Se probaron los endpoints `GET /api/users/me`, `GET /api/dashboard` y `GET /api/budgets`.
+
+- **Sugerencias aceptadas y motivo:**
+    - Utilizar PostgreSQL como almacenamiento persistente.
+    - Verificar primero la conexión a la base de datos antes de continuar con las funcionalidades.
+    - Realizar pruebas HTTP desde PowerShell para comprobar las respuestas de la API.
+
+- **Sugerencias rechazadas y motivo:** Guardar contraseñas sin cifrar, Se utilizará bcrypt para almacenar hashes de contraseñas.
+
+- **Verificación humana realizada:**
+    - Se ejecutaron solicitudes HTTP desde PowerShell.
+    - Se confirmó la conexión con PostgreSQL.
+    - Se verificó que el login devuelve una respuesta exitosa y un JWT.
+
+- **Errores detectados:**
+    - Los endpoints `/api/users/me`, `/api/dashboard` y `/api/budgets` devolvieron el mensaje `Token inválido`, a pesar de que el inicio de sesión generó un JWT correctamente.
+
+- **Correcciones aplicadas:**
+    - Se identificó la necesidad de revisar la generación, configuración y validación de JWT.
+    - La corrección definitiva de autenticación queda pendiente de verificar.
+
+- **Archivos o commits afectados:** Pendiente de identificar y registrar los archivos exactos modificados durante la implementación de la API.
+
 ## 4. Plantilla para nuevas sesiones
 
 Duplicar esta sección por cada sesión relevante:

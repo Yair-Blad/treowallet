@@ -22,13 +22,11 @@
 - [~] Elaborar y actualizar `design.md`.
 - [ ] Revisar y aprobar los documentos de especificación.
 - [ ] Completar decisiones técnicas pendientes en `design.md`.
-- [ ] Desglosar y priorizar tareas en `tasks.md`.
 - [ ] Registrar herramientas y decisiones de IA en `ai-log.md`.
 - [x] Crear repositorio Git.
 - [x] Crear estructura inicial del proyecto.
 - [ ] Verificar que todos los documentos de especificación estén guardados en `specs/`.
 - [ ] Crear commit exclusivo de especificaciones antes del código.
-- [ ] Relacionar los documentos y tareas con los commits correspondientes.
 
 **Commit esperado:** `docs: define project specifications`
 
@@ -54,7 +52,7 @@
 - [ ] Crear migraciones iniciales.
 - [ ] Implementar registro.
 - [ ] Implementar login y hash de contraseñas.
-- [ ] Implementar JWT de corta duración.
+- [x] Implementar JWT de corta duración.
 - [ ] Implementar refresh tokens rotatorios y logout.
 - [ ] Implementar rate limiting para login.
 - [ ] Implementar autorización por usuario.
@@ -69,15 +67,13 @@
 - [ ] Implementar alta, consulta y administración de beneficiarios.
 - [ ] Diseñar asientos contables de débito y crédito.
 - [ ] Implementar restricciones para impedir saldos negativos.
-- [ ] Implementar auditoría append-only.
 - [ ] Probar consistencia entre ledger y saldos.
 - [ ] Verificar aislamiento de datos entre usuarios.
 
 ## Fase 4 — Transferencias
 
 - [ ] Implementar transferencia interna.
-- [ ] Implementar transacción PostgreSQL y bloqueo de cuentas.
-- [ ] Definir orden determinista de bloqueo.
+- [ ] Implementar transferencias mediante transacciones PostgreSQL y bloqueo de las cuentas involucradas para evitar inconsistencias por operaciones simultáneas.
 - [ ] Implementar clave de idempotencia y huella de solicitud.
 - [ ] Implementar límite diario con control de concurrencia.
 - [ ] Implementar OTP simulado con expiración y límite de intentos.
@@ -94,7 +90,7 @@
 - [ ] Implementar filtros por fecha y tipo.
 - [ ] Implementar paginación por cursor.
 - [ ] Crear índices necesarios.
-- [ ] Generar al menos 100,000 movimientos de prueba.
+- [ ] (opcional)Generar al menos 100,000 movimientos de prueba.
 - [ ] Ejecutar y documentar `EXPLAIN ANALYZE`.
 - [ ] Verificar rendimiento de las consultas.
 - [ ] Verificar que un usuario no pueda consultar movimientos ajenos.
@@ -108,7 +104,7 @@
 - [x] Crear estructura inicial de páginas y estilos.
 - [x] Separar estilos generales y estilos del Dashboard.
 - [ ] Configurar cliente API.
-- [ ] Configurar TanStack Query.
+- [ ] Crear un servicio sencillo para consumir la API desde React.
 
 ### 6.2 Interfaz visual
 
@@ -156,7 +152,6 @@
 ## Fase 8 — Documentación, CI y entrega
 
 - [ ] Completar OpenAPI y habilitar documentación local.
-- [ ] Completar `docs/aws-deploy.md` y diagrama Mermaid.
 - [ ] Completar README de instalación y ejecución.
 - [ ] Configurar CI para lint y pruebas.
 - [ ] Revisar historial de commits y relación con tareas.

@@ -306,4 +306,55 @@ test(transfers): add concurrency tests
 
 ---
 
+## Decisiones técnicas
+
+Treo Wallet se desarrolla utilizando una arquitectura modular que permita mantener, escalar y extender sus funcionalidades conforme avance el proyecto.
+
+### Stack tecnológico
+
+**Backend**
+- Node.js
+- Express 5
+- TypeScript
+- PostgreSQL
+- JWT para autenticación.
+- bcryptjs para el hashing de contraseñas.
+- dotenv para variables de entorno.
+
+**Frontend**
+- React
+- TypeScript
+- CSS modular por componentes.
+- Diseño adaptable para web y dispositivos móviles.
+
+### Decisiones de arquitectura
+
+- Se utilizará PostgreSQL como sistema de gestión de base de datos.
+- El backend seguirá una arquitectura modular.
+- La autenticación será gestionada mediante JWT.
+- Las contraseñas nunca se almacenarán en texto plano.
+- Se mantendrá una separación entre frontend y backend.
+- Se priorizará la reutilización de componentes.
+- Se buscará mantener compatibilidad entre interfaces web y móviles.
+
+## Criterios para evaluar nuevas sugerencias
+
+Las nuevas propuestas técnicas deberán evaluarse considerando:
+
+1. Seguridad de la información.
+2. Facilidad de mantenimiento.
+3. Escalabilidad.
+4. Compatibilidad con la arquitectura existente.
+5. Tiempo de implementación.
+6. Complejidad técnica.
+7. Beneficio real para el usuario.
+
+Las sugerencias rechazadas podrán reconsiderarse si cambian los requisitos o las necesidades del proyecto.
+
+## Estado del proyecto
+
+El proyecto se encuentra en su etapa inicial de desarrollo.
+
+Las decisiones técnicas podrán actualizarse conforme se completen las funcionalidades y se identifiquen nuevas necesidades.
+
 *Este README se actualizará conforme avance el desarrollo y se incorporen nuevas funcionalidades.*
