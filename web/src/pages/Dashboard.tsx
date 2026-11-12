@@ -1,50 +1,116 @@
 
+import { useEffect, useState } from "react";
 import "../styles/Dashboard.css";
 
+import {
+  getDashboard,
+  type AuthUser,
+  type DashboardResponse,
+  type Transaction,
+} from "../services/api";
+
 interface DashboardProps {
+  token: string;
+  user: AuthUser;
   onLogout: () => void;
 }
 
-function Dashboard({ onLogout }: DashboardProps) {
-  const transactions = [
-    {
-      name: "Netflix",
-      category: "Entretenimiento",
-      date: "Hoy, 10:30 AM",
-      amount: "-$199.00",
-      type: "expense",
-      icon: "N",
-    },
-    {
-      name: "Nómina",
-      category: "Ingresos",
-      date: "Ayer, 09:00 AM",
-      amount: "+$15,000.00",
-      type: "income",
-      icon: "$",
-    },
-    {
-      name: "Spotify",
-      category: "Entretenimiento",
-      date: "10 Nov, 08:15 AM",
-      amount: "-$129.00",
-      type: "expense",
-      icon: "S",
-    },
-    {
-      name: "Supermercado",
-      category: "Alimentación",
-      date: "09 Nov, 05:20 PM",
-      amount: "-$850.00",
-      type: "expense",
-      icon: "C",
-    },
-  ];
+const formatCurrency = (value: number | string | null | undefined) => {
+  const amount = Number(value ?? 0);
+
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+  }).format(Number.isFinite(amount) ? amount : 0);
+};
+
+const formatDate = (value: string) => {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("es-MX", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};
+
+function Dashboard({ token, user, onLogout }: DashboardProps) {
+  const [data, setData] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    const loadDashboard = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await getDashboard(token);
+
+        if (active) {
+          setData(response);
+        }
+      } catch (err) {
+        if (!active) return;
+
+        const message =
+          err instanceof Error ? err.message : "Error desconocido";
+
+        if (message.toLowerCase().includes("token") ||
+            message.toLowerCase().includes("autoriz")) {
+          onLogout();
+          return;
+        }
+
+        setError(message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      active = false;
+    };
+  }, [token, onLogout]);
+
+  const initials = `${user.firstName?.charAt(0) || ""}${user.lastName?.charAt(0) || ""}`.toUpperCase();
+
+  const summary = data?.summary;
+
+  const renderTransaction = (transaction: Transaction) => {
+    const isIncome = transaction.transaction_type === "income";
+
+    return (
+      <div className="transaction-row" key={transaction.id}>
+        <div className={`transaction-icon ${isIncome ? "income" : "expense"}`}>
+          {transaction.description?.charAt(0)?.toUpperCase() || "$"}
+        </div>
+
+        <div className="transaction-details">
+          <strong>{transaction.description}</strong>
+          <span>{transaction.category || "Sin categoría"}</span>
+        </div>
+
+        <div className="transaction-date">
+          {formatDate(transaction.transaction_date)}
+        </div>
+
+        <strong className={`transaction-amount ${isIncome ? "income" : "expense"}`}>
+          {isIncome ? "+" : "-"}
+          {formatCurrency(transaction.amount)}
+        </strong>
+      </div>
+    );
+  };
 
   return (
     <div className="dashboard">
 
-      {/* SIDEBAR */}
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="logo-icon">T</div>
@@ -65,7 +131,7 @@ function Dashboard({ onLogout }: DashboardProps) {
           </a>
 
           <a href="#" className="nav-item">
-            <span className="nav-icon">▤</span>
+            <span className="nav-icon">◤</span>
             Cuentas
           </a>
 
@@ -75,7 +141,7 @@ function Dashboard({ onLogout }: DashboardProps) {
           </a>
 
           <a href="#" className="nav-item">
-            <span className="nav-icon">▥</span>
+            <span className="nav-icon">◥</span>
             Reportes
           </a>
 
@@ -89,11 +155,11 @@ function Dashboard({ onLogout }: DashboardProps) {
 
         <div className="sidebar-bottom">
           <div className="sidebar-user">
-            <div className="user-avatar">YP</div>
+            <div className="user-avatar">{initials}</div>
 
             <div className="user-info">
-              <strong>Usuario Treo</strong>
-              <span>usuario@email.com</span>
+              <strong>{user.firstName} {user.lastName}</strong>
+              <span>{user.email}</span>
             </div>
           </div>
 
@@ -104,13 +170,12 @@ function Dashboard({ onLogout }: DashboardProps) {
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className="dashboard-main">
 
         <header className="dashboard-header">
           <div>
             <h1>Dashboard</h1>
-            <p>Bienvenido de nuevo. Aquí tienes un resumen de tus finanzas.</p>
+            <p>Bienvenido de nuevo, {user.firstName}. Aquí tienes un resumen de tus finanzas.</p>
           </div>
 
           <div className="header-actions">
@@ -119,122 +184,120 @@ function Dashboard({ onLogout }: DashboardProps) {
               <span className="notification-dot"></span>
             </button>
 
-            <div className="header-avatar">YP</div>
+            <div className="header-avatar">{initials}</div>
           </div>
         </header>
 
-        {/* BALANCE */}
-        <section className="balance-section">
-          <div className="balance-card">
-            <div className="balance-card-top">
-              <span>Balance total</span>
-              <span className="balance-menu">•••</span>
-            </div>
+        {loading && (
+          <p role="status">Cargando información financiera...</p>
+        )}
 
-            <h2>$45,850.00</h2>
+        {error && (
+          <p role="alert" className="dashboard-error">
+            {error}
+          </p>
+        )}
 
-            <div className="balance-footer">
-              <span className="balance-positive">↑ 12.8%</span>
-              <span>respecto al mes pasado</span>
-            </div>
-          </div>
+        {!loading && !error && data && (
+          <>
+            <section className="balance-section">
 
-          <div className="summary-card">
-            <div className="summary-icon income-icon">↙</div>
-            <span>Ingresos</span>
-            <h3>$25,000.00</h3>
-            <p className="summary-positive">↑ 8.2% este mes</p>
-          </div>
-
-          <div className="summary-card">
-            <div className="summary-icon expense-icon">↗</div>
-            <span>Gastos</span>
-            <h3>$8,450.00</h3>
-            <p className="summary-negative">↑ 3.4% este mes</p>
-          </div>
-        </section>
-
-        {/* CONTENT GRID */}
-        <section className="dashboard-grid">
-
-          <div className="content-card transactions-card">
-            <div className="card-header">
-              <div>
-                <h3>Últimas transacciones</h3>
-                <p>Resumen de tus movimientos recientes</p>
-              </div>
-
-              <button className="text-button">Ver todas</button>
-            </div>
-
-            <div className="transactions-list">
-              {transactions.map((transaction, index) => (
-                <div className="transaction-row" key={index}>
-                  <div className={`transaction-icon ${transaction.type}`}>
-                    {transaction.icon}
-                  </div>
-
-                  <div className="transaction-details">
-                    <strong>{transaction.name}</strong>
-                    <span>{transaction.category}</span>
-                  </div>
-
-                  <div className="transaction-date">
-                    {transaction.date}
-                  </div>
-
-                  <strong className={`transaction-amount ${transaction.type}`}>
-                    {transaction.amount}
-                  </strong>
+              <div className="balance-card">
+                <div className="balance-card-top">
+                  <span>Balance total</span>
+                  <span className="balance-menu">•••</span>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="content-card quick-actions-card">
-            <div className="card-header">
-              <div>
-                <h3>Acciones rápidas</h3>
-                <p>Administra tu dinero</p>
+                <h2>{formatCurrency(summary?.current_balance)}</h2>
+
+                <div className="balance-footer">
+                  <span>Saldo actual de tus cuentas</span>
+                </div>
               </div>
-            </div>
 
-            <div className="quick-actions">
-              <button className="quick-action">
-                <span className="quick-action-icon purple">＋</span>
-                <span>
-                  <strong>Agregar ingreso</strong>
-                  <small>Registra dinero recibido</small>
-                </span>
-              </button>
+              <div className="summary-card">
+                <div className="summary-icon income-icon">↙</div>
+                <span>Ingresos acumulados</span>
+                <h3>{formatCurrency(summary?.total_income)}</h3>
+              </div>
 
-              <button className="quick-action">
-                <span className="quick-action-icon orange">－</span>
-                <span>
-                  <strong>Agregar gasto</strong>
-                  <small>Registra un nuevo gasto</small>
-                </span>
-              </button>
+              <div className="summary-card">
+                <div className="summary-icon expense-icon">↗</div>
+                <span>Gastos acumulados</span>
+                <h3>{formatCurrency(summary?.total_expenses)}</h3>
+              </div>
 
-              <button className="quick-action">
-                <span className="quick-action-icon blue">▤</span>
-                <span>
-                  <strong>Crear presupuesto</strong>
-                  <small>Organiza tus gastos</small>
-                </span>
-              </button>
+            </section>
 
-              <button className="quick-action">
-                <span className="quick-action-icon green">＋</span>
-                <span>
-                  <strong>Nueva cuenta</strong>
-                  <small>Agrega una cuenta bancaria</small>
-                </span>
-              </button>
-            </div>
-          </div>
+            <section className="dashboard-grid">
 
-        </section>
+              <div className="content-card transactions-card">
+                <div className="card-header">
+                  <div>
+                    <h3>Últimas transacciones</h3>
+                    <p>Resumen de tus movimientos recientes</p>
+                  </div>
+
+                  <button className="text-button" type="button">
+                    Ver todas
+                  </button>
+                </div>
+
+                <div className="transactions-list">
+                  {data.recentTransactions.length > 0 ? (
+                    data.recentTransactions.map(renderTransaction)
+                  ) : (
+                    <p>No tienes movimientos registrados todavía.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="content-card quick-actions-card">
+                <div className="card-header">
+                  <div>
+                    <h3>Acciones rápidas</h3>
+                    <p>Administra tu dinero</p>
+                  </div>
+                </div>
+
+                <div className="quick-actions">
+                  <button className="quick-action" type="button">
+                    <span className="quick-action-icon purple">＋</span>
+                    <span>
+                      <strong>Agregar ingreso</strong>
+                      <small>Registra dinero recibido</small>
+                    </span>
+                  </button>
+
+                  <button className="quick-action" type="button">
+                    <span className="quick-action-icon orange">－</span>
+                    <span>
+                      <strong>Agregar gasto</strong>
+                      <small>Registra un nuevo gasto</small>
+                    </span>
+                  </button>
+
+                  <button className="quick-action" type="button">
+                    <span className="quick-action-icon blue">◤</span>
+                    <span>
+                      <strong>Crear presupuesto</strong>
+                      <small>Organiza tus gastos</small>
+                    </span>
+                  </button>
+
+                  <button className="quick-action" type="button">
+                    <span className="quick-action-icon green">＋</span>
+                    <span>
+                      <strong>Nueva cuenta</strong>
+                      <small>Agrega una cuenta bancaria</small>
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+            </section>
+          </>
+        )}
 
       </main>
     </div>

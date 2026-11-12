@@ -1,7 +1,7 @@
 # Treo Wallet — Plan de trabajo
 
 **Estado:** En desarrollo  
-**Versión:** 0.2  
+**Versión:** 0.4  
 **Fecha:** 11 de noviembre de 2026
 
 ---
@@ -33,9 +33,9 @@
 ## Fase 1 — Base del repositorio y backend
 
 - [ ] Configurar npm workspaces en la raíz.
-- [ ] Inicializar API con Node.js, Express y TypeScript estricto.
+- [x] Inicializar API con Node.js, Express y TypeScript estricto.
 - [ ] Configurar ESLint, formatter y scripts.
-- [ ] Configurar variables de entorno y validación de configuración.
+- [x] Configurar variables de entorno y validación de configuración.
 - [ ] Configurar conexión PostgreSQL.
 - [ ] Configurar TypeORM con `synchronize: false`.
 - [ ] Configurar migraciones y seeds.
@@ -51,11 +51,11 @@
 - [ ] Diseñar entidades y relaciones.
 - [ ] Crear migraciones iniciales.
 - [ ] Implementar registro.
-- [ ] Implementar login y hash de contraseñas.
+- [x] Implementar login y hash de contraseñas.
 - [x] Implementar JWT de corta duración.
 - [ ] Implementar refresh tokens rotatorios y logout.
 - [ ] Implementar rate limiting para login.
-- [ ] Implementar autorización por usuario.
+- [x] Implementar autorización por usuario.
 - [ ] Crear pruebas unitarias e integración de autenticación.
 - [ ] Verificar expiración e invalidación de sesiones.
 
@@ -118,21 +118,25 @@
 
 ### 6.3 Funcionalidad e integración
 
-- [ ] Conectar login con la API.
+- [x] Configurar cliente API centralizado.
+- [x] Conectar login con la API.
 - [ ] Implementar registro de usuarios.
-- [ ] Implementar gestión de sesión y expiración de tokens.
-- [ ] Implementar protección de rutas.
-- [ ] Implementar resumen de cuentas con datos reales.
-- [ ] Implementar historial, filtros y paginación.
+- [~] Implementar gestión de sesión y almacenamiento de tokens.
+- [~] Implementar protección de vistas mediante estado de autenticación.
+- [x] Implementar consulta del Dashboard con datos reales.
+- [x] Mostrar saldos e ingresos desde PostgreSQL.
+- [x] Mostrar los últimos cinco movimientos.
+- [ ] Implementar historial completo, filtros y paginación.
 - [ ] Implementar administración de beneficiarios.
 - [ ] Implementar flujo de transferencia y confirmación.
 - [ ] Implementar comprobante.
-- [ ] Implementar formato monetario `es-MX`.
-- [ ] Implementar manejo de carga, error y accesibilidad básica.
-- [ ] Probar flujo de transferencia y fondos insuficientes.
-- [ ] Verificar que el frontend muestre el resultado real de las operaciones del backend.
+- [x] Implementar formato monetario `es-MX`.
+- [x] Implementar manejo básico de carga y errores.
+- [x] Probar autenticación con credenciales válidas e inválidas.
+- [x] Verificar que los datos del Dashboard coincidan con PostgreSQL.
+- [x] Verificar el cierre de sesión y regreso al Login.
 
-**Estado:** La interfaz inicial está implementada visualmente. La autenticación, la integración con la API y las operaciones financieras siguen pendientes.
+**Estado:** La aplicación web cuenta con Login y Dashboard conectados al backend. La autenticación, consulta de información financiera y cierre de sesión fueron probados satisfactoriamente. Las funcionalidades adicionales continúan pendientes.
 
 ## Fase 7 — Aplicación móvil
 
@@ -153,6 +157,7 @@
 
 - [ ] Completar OpenAPI y habilitar documentación local.
 - [ ] Completar README de instalación y ejecución.
+- [ ] Completar diagrama Mermaid de arquitectura.
 - [ ] Configurar CI para lint y pruebas.
 - [ ] Revisar historial de commits y relación con tareas.
 - [ ] Actualizar `ai-log.md`.
@@ -166,15 +171,16 @@
 |---|---|---|
 | Especificaciones iniciales | Pendiente | Documentos en proceso de actualización |
 | Base del monorepo | Pendiente | Estructura inicial creada |
-| Configuración de Node.js y PostgreSQL | Pendiente | Herramientas instaladas localmente |
+| Backend y conexión PostgreSQL | Por registrar | API conectada a PostgreSQL |
 | Inicialización de aplicación web | Pendiente | React, TypeScript y Vite |
 | Interfaz visual de Login | Pendiente | Primera implementación |
 | Interfaz visual de Dashboard | Pendiente | Primera implementación |
 | Backend y persistencia | Pendiente | Por implementar |
-| Autenticación | Pendiente | Por implementar |
+| Autenticación | Por registrar | Login con JWT y bcrypt |
 | Ledger y transferencias | Pendiente | Por implementar |
 | Historial y rendimiento | Pendiente | Por implementar |
-| Integración web | Pendiente | Por implementar |
+| Integración web | Por registrar | Login y Dashboard consumen API |
+Dashboard con datos reales	Por registrar	Saldos y movimientos verificados
 | Móvil | Pendiente | Por implementar |
 | Documentación y entrega | Pendiente | Por completar |
 
@@ -211,3 +217,5 @@
 |---|---|---|
 | 0.1 | 10/11/2026 | Plan de trabajo inicial. |
 | 0.2 | 11/11/2026 | Actualización de tareas según el avance real: repositorio, estructura, entorno local e interfaz visual web. Separación de tareas visuales e integración funcional. |
+| 0.3 | 11/11/2026 | Creación de la base de datos en PostgreSQL, integración y conexión con el backend de Treo Wallet, e implementación del hash de contraseñas para su almacenamiento seguro. |
+| 0.4 | 11/11/2026 | Integración y conexión entre el backend, la base de datos PostgreSQL y el frontend de Treo Wallet. |

@@ -1,7 +1,7 @@
 # Treo Wallet — Requisitos del sistema
 
 **Estado:** En desarrollo  
-**Versión:** 0.3  
+**Versión:** 0.4  
 **Fecha:** 11 de noviembre de 2026  
 **Producto:** Billetera digital en pesos mexicanos (MXN)
 
@@ -95,16 +95,32 @@ La aplicación consumirá la misma API que la aplicación móvil.
 
 ### 3.1 Avance actual de la aplicación web
 
-Se cuenta con una primera implementación visual que incluye:
+La aplicación web cuenta con una interfaz inicial desarrollada con React, TypeScript y Vite.
 
-- Estructura inicial de React con TypeScript y Vite.
-- Pantalla de inicio de sesión (`Login.tsx`).
-- Pantalla principal del dashboard (`Dashboard.tsx`).
-- Navegación inicial entre Login y Dashboard mediante estado local en `App.tsx`.
-- Estilos CSS separados para el dashboard y los estilos generales.
-- Elementos visuales de resumen financiero, ingresos, gastos, movimientos recientes y acciones rápidas.
+Funcionalidades implementadas:
 
-**Importante:** El inicio de sesión y el dashboard todavía son demostrativos. No existe autenticación real, persistencia de sesión ni conexión con la API. Los datos financieros mostrados son valores de ejemplo.
+- Login conectado con el endpoint `POST /api/auth/login`.
+- Validación de credenciales mediante el backend.
+- Gestión básica de sesión mediante JWT.
+- Almacenamiento de sesión en `localStorage` o `sessionStorage`, según la opción "Recordarme".
+- Cierre de sesión desde el Dashboard.
+- Dashboard conectado con `GET /api/dashboard`.
+- Consulta de información financiera real del usuario autenticado.
+- Visualización de saldo actual, ingresos y gastos.
+- Visualización de los últimos cinco movimientos.
+- Formato monetario mediante `Intl.NumberFormat` con configuración `es-MX`.
+- Manejo básico de errores y estados de carga.
+
+Las pruebas manuales de integración confirmaron:
+
+- Las credenciales incorrectas producen un mensaje de error.
+- Las credenciales correctas permiten acceder al Dashboard.
+- Se muestran correctamente el nombre y correo del usuario.
+- Los saldos coinciden con los registros de PostgreSQL.
+- Se muestran los últimos movimientos registrados.
+- El cierre de sesión regresa al Login.
+
+**Pendiente:** registro de usuarios, recuperación de contraseña, refresh tokens, historial completo con filtros y paginación, beneficiarios y transferencias.
 
 ### 3.2 Requisitos pendientes de la aplicación web
 
@@ -296,16 +312,17 @@ Las siguientes decisiones deberán confirmarse en `design.md` antes de implement
 |---|---|
 | Repositorio y estructura inicial | Inicializado |
 | Node.js y PostgreSQL | Instalados localmente |
+| Backend y conexión PostgreSQL | Implementado |
 | Aplicación web con Vite y React | Inicializada |
 | Pantalla de Login | Implementación visual inicial |
 | Dashboard | Implementación visual inicial |
-| Autenticación real | Pendiente |
-| API REST | Pendiente |
-| Integración con PostgreSQL | Pendiente |
-| Cuentas y saldos reales | Pendiente |
+| Autenticación básica | Implementado |
+| API REST | Implementado |
+| Integración con PostgreSQL | Implementado |
+| Cuentas y saldos reales | Implementado |
 | Beneficiarios | Pendiente |
 | Transferencias | Pendiente |
-| Historial de movimientos | Pendiente |
+| Historial de movimientos | Implementación inicial |
 | Aplicación móvil | Pendiente |
 | Pruebas automatizadas | Pendiente |
 | CI | Pendiente |
@@ -317,3 +334,5 @@ Las siguientes decisiones deberán confirmarse en `design.md` antes de implement
 |---|---|---|
 | 0.1 | 10/11/2026 | Definición inicial de requisitos funcionales, técnicos y de seguridad. |
 | 0.2 | 11/11/2026 | Actualización del estado del proyecto, incorporación del avance visual de Login y Dashboard, separación entre funcionalidades implementadas y pendientes, y ampliación de criterios de seguridad y pruebas. |
+| 0.3 | 11/11/2026 | Creación de la base de datos en PostgreSQL, integración y conexión con el backend de Treo Wallet, e implementación del hash de contraseñas para su almacenamiento seguro. |
+| 0.4 | 11/11/2026 | Integración y conexión entre el backend, la base de datos PostgreSQL y el frontend de Treo Wallet. |

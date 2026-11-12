@@ -1,7 +1,7 @@
 # Treo Wallet — Registro de uso de IA
 
 **Estado:** Inicial  
-**Versión:** 0.2  
+**Versión:** 0.4  
 **Fecha de inicio:** 11 de noviembre de 2026
 
 ## 1. Objetivo
@@ -106,6 +106,39 @@ Este archivo se actualizará durante el proyecto. No registrar como ejecutado al
     - La corrección definitiva de autenticación queda pendiente de verificar.
 
 - **Archivos o commits afectados:** Pendiente de identificar y registrar los archivos exactos modificados durante la implementación de la API.
+
+### Sesión 005 - Integración del frontend con el backend
+
+**Objetivo:** Conectar la aplicación web con la API de Treo Wallet y consultar información almacenada en PostgreSQL.
+
+**Instrucción o prompt clave:** Conectar el Login y Dashboard con el backend, gestionar la autenticación mediante JWT y mostrar los datos reales del usuario.
+
+**Resultado generado:** Integración inicial entre frontend, backend y PostgreSQL completada satisfactoriamente.
+
+**Sugerencias aceptadas y motivo:**
+
+- Creación de un servicio centralizado para consumir la API mediante `fetch`.
+- Integración del Login con `POST /api/auth/login`.
+- Integración del Dashboard con `GET /api/dashboard`.
+- Implementación de almacenamiento de JWT en `localStorage` o `sessionStorage`.
+- Implementación de cierre de sesión en el frontend.
+- Visualización de información financiera real.
+- Manejo básico de errores y estados de carga.
+
+**Sugerencias rechazadas y motivo:** Axios y TanStack Query; se prefirió utilizar fetch nativo para evitar dependencias adicionales.
+
+**Verificación humana realizada:** Se probaron credenciales válidas e inválidas, visualización de usuario y saldos, movimientos recientes y cierre de sesión. Todas las pruebas fueron satisfactorias.
+
+**Errores detectados:** No se detectaron errores bloqueantes. El logout y la gestión de sesión todavía son básicos.
+
+**Archivos o commits afectados:**
+
+- `web/src/services/api.ts`
+- `web/src/pages/Login.tsx`
+- `web/src/pages/Dashboard.tsx`
+- `web/src/App.tsx`
+- `api/src/controllers/auth.controller.ts`
+- `api/src/controllers/dashboard.controller.ts`
 
 ## 4. Plantilla para nuevas sesiones
 

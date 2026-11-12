@@ -1,7 +1,7 @@
 # Treo Wallet — Diseño técnico
 
 **Estado:** En desarrollo  
-**Versión:** 0.2  
+**Versión:** 0.4  
 **Fecha de actualización:** 11 de noviembre de 2026
 
 ## 1. Objetivo del diseño
@@ -44,14 +44,15 @@ La estructura permite mantener separados los clientes, la API, los componentes c
 
 | Componente | Estado | Descripción |
 |---|---|---|
-| Repositorio | Inicializado | Estructura principal del proyecto creada |
-| Node.js | Instalado | Entorno de ejecución local disponible |
-| PostgreSQL | Instalado | Motor de base de datos instalado localmente |
-| Web | Inicializada | Proyecto React, TypeScript y Vite |
-| Login web | Implementado visualmente | Interfaz de inicio de sesión con datos de demostración |
-| Dashboard web | Implementado visualmente | Panel principal con resumen financiero y movimientos de ejemplo |
-| API | Pendiente | Falta implementar endpoints y lógica de negocio |
-| Base de datos | Pendiente de integración | Falta definir entidades, migraciones y conexión desde la API |
+| Repositorio | Completado | Estructura inicial creada y publicada en GitHub. |
+| Entorno local | Completado | Node.js y PostgreSQL instalados. |
+| Backend | En desarrollo | API Express con conexión PostgreSQL. |
+| Autenticación | Implementada | Login con bcrypt y JWT. |
+| Dashboard API | Implementado | Consulta de resumen financiero y últimos movimientos. |
+| Frontend web | En desarrollo | React, TypeScript y Vite. |
+| Login web | Implementado | Conectado con el endpoint de autenticación. |
+| Dashboard web | Implementado | Consume información real de la API. |
+| Base de datos | Implementado | Creada y conectada al backend |
 | Aplicación móvil | Pendiente | Falta inicializar e implementar las pantallas |
 | Integración completa | Pendiente | Los clientes todavía no consumen una API funcional |
 
@@ -184,6 +185,25 @@ Los contratos exactos se documentarán en OpenAPI.
 ## 9. Web y móvil
 
 ### 9.1 Aplicación web
+
+La aplicación web consume la API mediante `fetch`, utilizando un servicio centralizado en `web/src/services/api.ts`.
+
+Los endpoints integrados son:
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| POST | `/api/auth/login` | Autenticación del usuario. |
+| GET | `/api/dashboard` | Consulta del resumen financiero y movimientos. |
+
+Las peticiones protegidas utilizan el encabezado:
+
+`Authorization: Bearer <token>`
+
+El frontend administra la sesión mediante almacenamiento local o de sesión del navegador, según la selección del usuario.
+
+La API es responsable de validar el JWT y restringir la información consultada al usuario autenticado.
+
+La integración fue comprobada mediante pruebas manuales de inicio de sesión, consulta de información financiera y cierre de sesión.
 
 Tecnologías y herramientas previstas:
 
@@ -325,3 +345,5 @@ Se deberán documentar RPO/RTO, retención de auditoría, estrategia de ambiente
 |---|---|---|
 | 0.1 | 10/11/2026 | Diseño inicial de arquitectura, backend, modelo de datos y estrategia financiera. |
 | 0.2 | 11/11/2026 | Actualización del estado del proyecto. Se documenta la estructura web, Login y Dashboard implementados visualmente, así como las tareas de integración pendientes. |
+| 0.3 | 11/11/2026 | Creación de la base de datos en PostgreSQL, integración y conexión con el backend de Treo Wallet, e implementación del hash de contraseñas para su almacenamiento seguro. |
+| 0.4 | 11/11/2026 | Integración y conexión entre el backend, la base de datos PostgreSQL y el frontend de Treo Wallet. |

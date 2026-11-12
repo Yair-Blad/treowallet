@@ -7,7 +7,7 @@ Treo Wallet es un proyecto de billetera digital desarrollado como parte de una p
 El proyecto contempla una arquitectura compartida entre una aplicación web y una aplicación móvil, respaldadas por una API REST y una base de datos PostgreSQL.
 
 > **Estado del proyecto:** En desarrollo  
-> **Versión:** 0.2  
+> **Versión:** 0.4  
 > **Última actualización:** 11 de noviembre de 2026
 
 ---
