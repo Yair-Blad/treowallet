@@ -1,6 +1,9 @@
 
 import { Request, Response } from "express";
-import { pool } from "../config/database";
+import { AppDataSource } from "../config/database";
+import { Budget } from "../entities/Budget";
+import { Category } from "../entities/Category";
+import { Transaction } from "../entities/Transaction";
 
 const validMonth = (value: unknown): value is string =>
   typeof value === "string" &&
@@ -12,7 +15,9 @@ export const getBudgets = async (
   res: Response
 ) => {
   try {
-    const month = req.query.month ?? new Date().toISOString().slice(0, 7) + "-01";
+    const month =
+      req.query.month ??
+      new Date().toISOString().slice(0, 7) + "-01";
 
     if (!validMonth(month)) {
       return res.status(400).json({
@@ -21,40 +26,52 @@ export const getBudgets = async (
       });
     }
 
-    const result = await pool.query(
-      `
-      SELECT
-        b.id,
-        b.amount AS budget_amount,
-        b.budget_month,
-        c.id AS category_id,
-        c.name AS category,
-        COALESCE(SUM(t.amount), 0) AS spent,
-        GREATEST(
-          b.amount - COALESCE(SUM(t.amount), 0),
+    const budgetRepository = AppDataSource.getRepository(Budget);
+
+    const result = await budgetRepository
+      .createQueryBuilder("budget")
+      .innerJoin("budget.category", "category")
+      .leftJoin(
+        Transaction,
+        "transaction",
+        `transaction.user_id = budget.user_id
+         AND transaction.category_id = budget.category_id
+         AND transaction.transaction_type = 'expense'
+         AND transaction.transaction_date >= budget.budget_month
+         AND transaction.transaction_date <
+             budget.budget_month + INTERVAL '1 month'`
+      )
+      .select("budget.id", "id")
+      .addSelect("budget.amount", "budget_amount")
+      .addSelect("budget.budget_month", "budget_month")
+      .addSelect("category.id", "category_id")
+      .addSelect("category.name", "category")
+      .addSelect(
+        "COALESCE(SUM(transaction.amount), 0)",
+        "spent"
+      )
+      .addSelect(
+        `GREATEST(
+          budget.amount - COALESCE(SUM(transaction.amount), 0),
           0
-        ) AS remaining
-      FROM budgets b
-      JOIN categories c ON c.id = b.category_id
-      LEFT JOIN transactions t
-        ON t.user_id = b.user_id
-        AND t.category_id = b.category_id
-        AND t.transaction_type = 'expense'
-        AND t.transaction_date >= b.budget_month
-        AND t.transaction_date < b.budget_month + INTERVAL '1 month'
-      WHERE b.user_id = $1
-        AND b.budget_month = $2::date
-      GROUP BY
-        b.id, b.amount, b.budget_month,
-        c.id, c.name
-      ORDER BY c.name
-      `,
-      [req.userId, month]
-    );
+        )`,
+        "remaining"
+      )
+      .where("budget.user_id = :userId", {
+        userId: String(req.userId),
+      })
+      .andWhere("budget.budget_month = :month", { month })
+      .groupBy("budget.id")
+      .addGroupBy("budget.amount")
+      .addGroupBy("budget.budget_month")
+      .addGroupBy("category.id")
+      .addGroupBy("category.name")
+      .orderBy("category.name", "ASC")
+      .getRawMany();
 
     return res.json({
       success: true,
-      budgets: result.rows,
+      budgets: result,
     });
 
   } catch (error) {
@@ -87,34 +104,44 @@ export const createBudget = async (
       });
     }
 
-    const category = await pool.query(
-      `SELECT id FROM categories
-       WHERE id = $1 AND category_type = 'expense'`,
-      [categoryId]
-    );
+    const categoryRepository = AppDataSource.getRepository(Category);
+    const budgetRepository = AppDataSource.getRepository(Budget);
 
-    if (category.rows.length === 0) {
+    const category = await categoryRepository.findOne({
+      where: {
+        id: String(categoryId),
+        category_type: "expense",
+      },
+    });
+
+    if (!category) {
       return res.status(400).json({
         success: false,
         message: "La categoría no existe o no es de gastos",
       });
     }
 
-    const result = await pool.query(
-      `
-      INSERT INTO budgets (user_id, category_id, amount, budget_month)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (user_id, category_id, budget_month)
-      DO UPDATE SET amount = EXCLUDED.amount
-      RETURNING *
-      `,
-      [req.userId, categoryId, amount, budgetMonth]
-    );
+    const result = await budgetRepository
+      .createQueryBuilder()
+      .insert()
+      .into(Budget)
+      .values({
+        user_id: String(req.userId),
+        category_id: String(categoryId),
+        amount: String(amount),
+        budget_month: budgetMonth,
+      })
+      .orUpdate(
+        ["amount"],
+        ["user_id", "category_id", "budget_month"]
+      )
+      .returning("*")
+      .execute();
 
     return res.status(201).json({
       success: true,
       message: "Presupuesto guardado correctamente",
-      budget: result.rows[0],
+      budget: result.raw[0],
     });
 
   } catch (error) {
@@ -132,12 +159,15 @@ export const updateBudget = async (
   res: Response
 ) => {
   try {
-    const budgetId = Number(req.params.id);
+    const budgetId = Array.isArray(req.params.id)
+    ? req.params.id[0]
+    : req.params.id;
     const { amount } = req.body;
 
     if (
-      !Number.isInteger(budgetId) ||
-      budgetId <= 0 ||
+      typeof budgetId !== "string" ||
+      !/^\d+$/.test(budgetId) ||
+      BigInt(budgetId) <= 0n ||
       typeof amount !== "number" ||
       !Number.isFinite(amount) ||
       amount <= 0
@@ -148,17 +178,20 @@ export const updateBudget = async (
       });
     }
 
-    const result = await pool.query(
-      `
-      UPDATE budgets
-      SET amount = $1
-      WHERE id = $2 AND user_id = $3
-      RETURNING *
-      `,
-      [amount, budgetId, req.userId]
-    );
+    const budgetRepository = AppDataSource.getRepository(Budget);
 
-    if (result.rows.length === 0) {
+    const result = await budgetRepository
+      .createQueryBuilder()
+      .update(Budget)
+      .set({ amount: String(amount) })
+      .where("id = :budgetId", { budgetId })
+      .andWhere("user_id = :userId", {
+        userId: String(req.userId),
+      })
+      .returning("*")
+      .execute();
+
+    if (result.affected === 0) {
       return res.status(404).json({
         success: false,
         message: "Presupuesto no encontrado",
@@ -168,7 +201,7 @@ export const updateBudget = async (
     return res.json({
       success: true,
       message: "Presupuesto actualizado",
-      budget: result.rows[0],
+      budget: result.raw[0],
     });
 
   } catch (error) {
@@ -186,23 +219,35 @@ export const deleteBudget = async (
   res: Response
 ) => {
   try {
-    const budgetId = Number(req.params.id);
+    const budgetId = Array.isArray(req.params.id)
+    ? req.params.id[0]
+    : req.params.id;
 
-    if (!Number.isInteger(budgetId) || budgetId <= 0) {
+    if (
+      typeof budgetId !== "string" ||
+      !/^\d+$/.test(budgetId) ||
+      BigInt(budgetId) <= 0n
+    ) {
       return res.status(400).json({
         success: false,
         message: "ID de presupuesto inválido",
       });
     }
 
-    const result = await pool.query(
-      `DELETE FROM budgets
-       WHERE id = $1 AND user_id = $2
-       RETURNING id`,
-      [budgetId, req.userId]
-    );
+    const budgetRepository = AppDataSource.getRepository(Budget);
 
-    if (result.rows.length === 0) {
+    const result = await budgetRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Budget)
+      .where("id = :budgetId", { budgetId })
+      .andWhere("user_id = :userId", {
+        userId: String(req.userId),
+      })
+      .returning(["id"])
+      .execute();
+
+    if (result.affected === 0) {
       return res.status(404).json({
         success: false,
         message: "Presupuesto no encontrado",

@@ -1,8 +1,8 @@
-# Treo Wallet — Requisitos del sistema
+# Treo Wallet — Requisitos
 
 **Estado:** En desarrollo  
-**Versión:** 0.4  
-**Fecha:** 11 de noviembre de 2026  
+**Versión:** 0.5  
+**Fecha:** 15 de noviembre de 2026  
 **Producto:** Billetera digital en pesos mexicanos (MXN)
 
 ---
@@ -95,20 +95,29 @@ La aplicación consumirá la misma API que la aplicación móvil.
 
 ### 3.1 Avance actual de la aplicación web
 
-La aplicación web cuenta con una interfaz inicial desarrollada con React, TypeScript y Vite.
+La aplicación web cuenta con una interfaz desarrollada con React, TypeScript y Vite, conectada con el backend y PostgreSQL.
 
 Funcionalidades implementadas:
 
-- Login conectado con el endpoint `POST /api/auth/login`.
+- Login conectado con `POST /api/auth/login`.
 - Validación de credenciales mediante el backend.
 - Gestión básica de sesión mediante JWT.
-- Almacenamiento de sesión en `localStorage` o `sessionStorage`, según la opción "Recordarme".
+- Almacenamiento de sesión según la opción "Recordarme".
 - Cierre de sesión desde el Dashboard.
 - Dashboard conectado con `GET /api/dashboard`.
 - Consulta de información financiera real del usuario autenticado.
 - Visualización de saldo actual, ingresos y gastos.
 - Visualización de los últimos cinco movimientos.
+- Consulta de cuentas y saldos.
+- Administración de presupuestos: consulta, registro, actualización y eliminación.
+- Administración de beneficiarios: consulta, registro y eliminación.
+- Validación de formato y dígito de control de CLABE.
+- Registro de ingresos y gastos.
+- Consulta y filtrado de movimientos por tipo.
+- Eliminación de movimientos.
+- Consulta de categorías según el tipo de movimiento.
 - Formato monetario mediante `Intl.NumberFormat` con configuración `es-MX`.
+- Comunicación con la API mediante Fetch.
 - Manejo básico de errores y estados de carga.
 
 Las pruebas manuales de integración confirmaron:
@@ -119,21 +128,25 @@ Las pruebas manuales de integración confirmaron:
 - Los saldos coinciden con los registros de PostgreSQL.
 - Se muestran los últimos movimientos registrados.
 - El cierre de sesión regresa al Login.
+- Los datos de los usuarios se mantienen separados.
+- Los presupuestos se consultan y administran correctamente.
+- Los beneficiarios se registran, consultan y eliminan correctamente.
+- Los beneficiarios permanecen registrados después de cerrar e iniciar sesión nuevamente.
+- Los ingresos y gastos se registran correctamente.
+- Las categorías cambian según el tipo de movimiento.
+- Los movimientos pueden filtrarse por tipo y eliminarse.
 
-**Pendiente:** registro de usuarios, recuperación de contraseña, refresh tokens, historial completo con filtros y paginación, beneficiarios y transferencias.
+**Pendiente:** registro de usuarios desde la interfaz, recuperación de contraseña, refresh tokens, historial completo con filtros por fecha y paginación, edición de beneficiarios, transferencias y comprobantes.
 
 ### 3.2 Requisitos pendientes de la aplicación web
 
-- Conectar el inicio de sesión con la API.
 - Implementar registro de usuarios.
 - Gestionar sesiones y expiración de tokens.
-- Conectar el dashboard con los saldos reales de la API.
-- Implementar historial de movimientos y filtros.
-- Implementar administración de beneficiarios.
+- Implementar historial completo con filtros por fecha y paginación.
 - Implementar el flujo completo de transferencias.
-- Incorporar validaciones de negocio y manejo de errores del servidor.
+- Incorporar validaciones adicionales de negocio y manejo de errores del servidor.
 - Implementar comprobantes de transferencia.
-- Incorporar estados de carga, éxito, error y ausencia de datos reales.
+- Incorporar estados completos de carga, éxito, error y ausencia de datos.
 - Integrar TanStack Query.
 - Implementar pruebas de componentes y flujos principales.
 
@@ -171,6 +184,10 @@ Se permite utilizar React Native con Expo.
 - Logs estructurados.
 - Manejo centralizado de errores.
 
+**Implementado actualmente:** Node.js, Express, TypeScript, PostgreSQL, TypeORM y conexión mediante variables de entorno. Se utiliza `synchronize: false`.
+
+**Pendiente:** Zod, versionado de API, documentación OpenAPI, logs estructurados y completar la estrategia de manejo centralizado de errores.
+
 ### 5.2 Frontend
 
 - React para la aplicación web.
@@ -180,22 +197,51 @@ Se permite utilizar React Native con Expo.
 - CSS para la presentación visual.
 - React Native/Expo para la aplicación móvil.
 
+**Implementado actualmente:** React, TypeScript, Vite, CSS y Fetch API.
+
+**Pendiente:** TanStack Query y React Native/Expo.
+
 ### 5.3 Organización del proyecto
 
-Se utilizará un monorepo con la siguiente estructura general:
+El proyecto utiliza una estructura organizada por aplicaciones y documentación. La estructura actual es:
 
 ```text
 treowallet/
 ├── api/
+│   └── src/
+│       ├── config/
+│       ├── controllers/
+│       ├── entities/
+│       ├── middleware/
+│       ├── migrations/
+│       ├── routes/
+│       ├── scripts/
+│       ├── types/
+│       ├── app.ts
+│       └── server.ts
 ├── web/
-├── mobile/
-├── packages/
-│   └── shared/
+│   └── src/
+│       ├── pages/
+│       │   ├── Login.tsx
+│       │   ├── Dashboard.tsx
+│       │   ├── Accounts.tsx
+│       │   ├── Budgets.tsx
+│       │   ├── Beneficiaries.tsx
+│       │   └── Transactions.tsx
+│       ├── services/
+│       │   └── api.ts
+│       └── ...
+├── mobile/             # Pendiente
 ├── specs/
-└── docs/
+│   ├── requirements.md
+│   ├── design.md
+│   ├── tasks.md
+│   └── ai-log.md
+├── docs/
+└── README.md
 ```
 
-La carpeta `packages/shared` podrá contener tipos, esquemas de validación y utilidades compartidas entre las aplicaciones.
+La carpeta `mobile/` queda reservada para la futura aplicación móvil. La incorporación de `packages/shared` podrá evaluarse cuando existan tipos, esquemas de validación o utilidades que necesiten compartirse entre aplicaciones.
 
 ### 5.4 Base de datos
 
@@ -204,6 +250,8 @@ La carpeta `packages/shared` podrá contener tipos, esquemas de validación y ut
 - Desactivar `synchronize` de TypeORM en los entornos de ejecución.
 - Definir restricciones e índices para proteger la integridad de los datos.
 - Utilizar transacciones para las operaciones financieras.
+
+**Implementado actualmente:** PostgreSQL conectado al backend mediante TypeORM, entidades para usuarios, cuentas, categorías, movimientos, presupuestos y beneficiarios. Se utiliza `synchronize: false` y existe un mecanismo para ejecutar migraciones.
 
 ## 6. Seguridad e integridad financiera
 
@@ -220,6 +268,10 @@ La carpeta `packages/shared` podrá contener tipos, esquemas de validación y ut
 - No exponer contraseñas, tokens, credenciales ni información sensible en logs.
 - Validar la autorización en el backend, independientemente de las restricciones visuales del frontend.
 - Proteger los endpoints contra accesos no autorizados y manipulación de parámetros.
+
+**Implementado actualmente:** Hash de contraseñas mediante bcrypt, autenticación JWT, protección de rutas mediante middleware y validaciones de acceso a recursos según el usuario autenticado.
+
+**Pendiente:** refresh tokens, limitación de intentos de autenticación, auditoría, idempotencia y controles de concurrencia para transferencias.
 
 ## 7. Requisitos de pruebas
 
@@ -258,6 +310,8 @@ La carpeta `packages/shared` podrá contener tipos, esquemas de validación y ut
 - Verificar el caso de fondos insuficientes.
 - Verificar estados de carga, éxito y error.
 - Verificar que los datos mostrados correspondan a las respuestas de la API.
+
+**Estado actual:** Se han realizado pruebas manuales de integración para autenticación, Dashboard, cuentas, presupuestos, beneficiarios y movimientos. Las pruebas automatizadas siguen pendientes.
 
 ## 8. Requisitos de documentación y entrega
 
@@ -310,22 +364,26 @@ Las siguientes decisiones deberán confirmarse en `design.md` antes de implement
 
 | Componente | Estado |
 |---|---|
-| Repositorio y estructura inicial | Inicializado |
+| Repositorio y estructura inicial | Implementado |
 | Node.js y PostgreSQL | Instalados localmente |
 | Backend y conexión PostgreSQL | Implementado |
-| Aplicación web con Vite y React | Inicializada |
-| Pantalla de Login | Implementación visual inicial |
-| Dashboard | Implementación visual inicial |
+| Aplicación web con Vite y React | Implementado |
+| Pantalla de Login | Implementado |
+| Dashboard | Implementado |
 | Autenticación básica | Implementado |
 | API REST | Implementado |
 | Integración con PostgreSQL | Implementado |
 | Cuentas y saldos reales | Implementado |
-| Beneficiarios | Pendiente |
-| Transferencias | Pendiente |
-| Historial de movimientos | Implementación inicial |
+| Presupuestos | Implementado |
+| Beneficiarios | Implementado |
+| Registro y consulta de ingresos y gastos | Implementado |
+| Filtros y eliminación de movimientos | Implementado |
+| Transferencias internas | Pendiente |
+| Historial completo con filtros por fecha y paginación | Pendiente |
 | Aplicación móvil | Pendiente |
 | Pruebas automatizadas | Pendiente |
 | CI | Pendiente |
+| Documentación OpenAPI | Pendiente |
 | Documentación de despliegue AWS | Pendiente |
 
 ## 12. Historial de versiones
@@ -336,3 +394,4 @@ Las siguientes decisiones deberán confirmarse en `design.md` antes de implement
 | 0.2 | 11/11/2026 | Actualización del estado del proyecto, incorporación del avance visual de Login y Dashboard, separación entre funcionalidades implementadas y pendientes, y ampliación de criterios de seguridad y pruebas. |
 | 0.3 | 11/11/2026 | Creación de la base de datos en PostgreSQL, integración y conexión con el backend de Treo Wallet, e implementación del hash de contraseñas para su almacenamiento seguro. |
 | 0.4 | 11/11/2026 | Integración y conexión entre el backend, la base de datos PostgreSQL y el frontend de Treo Wallet. |
+| 0.5 | 15/11/2026 | Implementación e integración de los módulos web de cuentas, presupuestos, beneficiarios y movimientos, con validaciones y pruebas manuales. |

@@ -1,26 +1,38 @@
 
 import { Request, Response } from "express";
-import { pool } from "../config/database";
+import { AppDataSource } from "../config/database";
+import { User } from "../entities/User";
 
 export const getMyProfile = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const result = await pool.query(
-      `SELECT
-         id,
-         first_name,
-         last_name,
-         email,
-         phone,
-         created_at
-       FROM users
-       WHERE id = $1 AND is_active = TRUE`,
-      [req.userId]
-    );
+    if (req.userId === undefined) {
+      return res.status(401).json({
+        success: false,
+        message: "No autorizado",
+      });
+    }
 
-    if (result.rows.length === 0) {
+    const userRepository = AppDataSource.getRepository(User);
+
+    const user = await userRepository.findOne({
+      where: {
+        id: String(req.userId),
+        is_active: true,
+      },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        phone: true,
+        created_at: true,
+      },
+    });
+
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: "Usuario no encontrado",
@@ -29,7 +41,7 @@ export const getMyProfile = async (
 
     return res.json({
       success: true,
-      user: result.rows[0],
+      user,
     });
 
   } catch (error) {

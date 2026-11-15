@@ -1,70 +1,100 @@
 
 import { Request, Response } from "express";
-import { pool } from "../config/database";
+import { AppDataSource } from "../config/database";
+import { Account } from "../entities/Account";
+import { Transaction } from "../entities/Transaction";
 
 export const getDashboard = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const userId = req.userId;
+    if (req.userId === undefined) {
+      return res.status(401).json({
+        success: false,
+        message: "No autorizado",
+      });
+    }
 
-    const summary = await pool.query(
-      `
-      WITH account_totals AS (
-        SELECT COALESCE(SUM(opening_balance), 0) AS opening_balance
-        FROM accounts
-        WHERE user_id = $1
-      ),
-      transaction_totals AS (
-        SELECT
-          COALESCE(SUM(
-            CASE WHEN transaction_type = 'income'
-            THEN amount ELSE 0 END
-          ), 0) AS total_income,
-          COALESCE(SUM(
-            CASE WHEN transaction_type = 'expense'
-            THEN amount ELSE 0 END
-          ), 0) AS total_expenses
-        FROM transactions
-        WHERE user_id = $1
+    const userId = String(req.userId);
+
+    const accountRepository = AppDataSource.getRepository(Account);
+    const transactionRepository = AppDataSource.getRepository(Transaction);
+
+    // Saldo inicial
+    const accountTotals = await accountRepository
+      .createQueryBuilder("account")
+      .select(
+        "COALESCE(SUM(account.opening_balance), 0)",
+        "opening_balance"
       )
-      SELECT
-        account_totals.opening_balance,
-        transaction_totals.total_income,
-        transaction_totals.total_expenses,
-        (
-          account_totals.opening_balance
-          + transaction_totals.total_income
-          - transaction_totals.total_expenses
-        ) AS current_balance
-      FROM account_totals, transaction_totals;
-      `,
-      [userId]
+      .where("account.user_id = :userId", { userId })
+      .getRawOne();
+
+    // Ingresos y gastos
+    const transactionTotals = await transactionRepository
+      .createQueryBuilder("transaction")
+      .select(
+        `COALESCE(SUM(
+          CASE
+            WHEN transaction.transaction_type = 'income'
+            THEN transaction.amount
+            ELSE 0
+          END
+        ), 0)`,
+        "total_income"
+      )
+      .addSelect(
+        `COALESCE(SUM(
+          CASE
+            WHEN transaction.transaction_type = 'expense'
+            THEN transaction.amount
+            ELSE 0
+          END
+        ), 0)`,
+        "total_expenses"
+      )
+      .where("transaction.user_id = :userId", { userId })
+      .getRawOne();
+
+    const openingBalance = accountTotals.opening_balance;
+    const totalIncome = transactionTotals.total_income;
+    const totalExpenses = transactionTotals.total_expenses;
+
+    // Saldo actual
+    const [balanceResult] = await AppDataSource.query(
+      `SELECT
+        CAST($1 AS NUMERIC)
+        + CAST($2 AS NUMERIC)
+        - CAST($3 AS NUMERIC) AS current_balance`,
+      [openingBalance, totalIncome, totalExpenses]
     );
 
-    const transactions = await pool.query(
-      `
-      SELECT
-        t.id,
-        t.description,
-        t.transaction_type,
-        t.amount,
-        t.transaction_date,
-        c.name AS category
-      FROM transactions t
-      LEFT JOIN categories c ON c.id = t.category_id
-      WHERE t.user_id = $1
-      ORDER BY t.transaction_date DESC, t.id DESC
-      LIMIT 5
-      `,
-      [userId]
-    );
+    // Últimos 5 movimientos
+    const transactions = await transactionRepository
+      .createQueryBuilder("transaction")
+      .leftJoin("transaction.category", "category")
+      .select("transaction.id", "id")
+      .addSelect("transaction.description", "description")
+      .addSelect("transaction.transaction_type", "transaction_type")
+      .addSelect("transaction.amount", "amount")
+      .addSelect("transaction.transaction_date", "transaction_date")
+      .addSelect("category.name", "category")
+      .where("transaction.user_id = :userId", { userId })
+      .orderBy("transaction.transaction_date", "DESC")
+      .addOrderBy("transaction.id", "DESC")
+      .limit(5)
+      .getRawMany();
 
     return res.json({
       success: true,
-      summary: summary.rows[0],
-      recentTransactions: transactions.rows,
+      summary: {
+        opening_balance: openingBalance,
+        total_income: totalIncome,
+        total_expenses: totalExpenses,
+        current_balance: balanceResult.current_balance,
+      },
+      recentTransactions: transactions,
     });
 
   } catch (error) {

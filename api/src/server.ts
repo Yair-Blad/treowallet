@@ -1,22 +1,18 @@
 
-import dotenv from "dotenv";
 import app from "./app";
-import { pool } from "./config/database";
-
-dotenv.config();
+import { AppDataSource } from "./config/database";
 
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
   try {
-    await pool.query("SELECT 1");
+    await AppDataSource.initialize();
 
-    console.log("PostgreSQL conectado correctamente");
+    console.log("PostgreSQL conectado correctamente mediante TypeORM");
 
     app.listen(PORT, () => {
       console.log(`TreoWallet API: http://localhost:${PORT}`);
     });
-
   } catch (error) {
     console.error("Error al iniciar el backend:", error);
     process.exit(1);

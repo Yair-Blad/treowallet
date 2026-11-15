@@ -1,20 +1,21 @@
+
+import "reflect-metadata";
 import dotenv from "dotenv";
-import { Pool } from "pg";
+import { DataSource } from "typeorm";
 
 dotenv.config();
 
-export const pool = new Pool({
+export const AppDataSource = new DataSource({
+  type: "postgres",
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
+  username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-});
+  database: process.env.DB_NAME,
 
-pool.on("connect", () => {
-  console.log("Conexión establecida con PostgreSQL");
-});
+  synchronize: false,
+  logging: false,
 
-pool.on("error", (error) => {
-  console.error("Error inesperado en PostgreSQL:", error);
+  entities: [__dirname + "/../entities/*.{ts,js}"],
+  migrations: [__dirname + "/../migrations/*.{ts,js}"],
 });

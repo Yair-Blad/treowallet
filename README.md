@@ -2,28 +2,28 @@
 
 **Billetera digital — Prueba técnica**
 
-Treo Wallet es un proyecto de billetera digital desarrollado como parte de una prueba técnica. Su objetivo es permitir a los usuarios consultar sus cuentas y saldos, administrar beneficiarios y realizar transferencias internas entre cuentas de la misma plataforma.
+Treo Wallet es un proyecto de billetera digital desarrollado como parte de una prueba técnica. Permite a los usuarios consultar sus cuentas y saldos, administrar beneficiarios y registrar ingresos y gastos.
 
-El proyecto contempla una arquitectura compartida entre una aplicación web y una aplicación móvil, respaldadas por una API REST y una base de datos PostgreSQL.
+El proyecto utiliza una API REST conectada a PostgreSQL y una aplicación web desarrollada con React.
 
-> **Estado del proyecto:** En desarrollo  
-> **Versión:** 0.4  
-> **Última actualización:** 11 de noviembre de 2026
+> **Estado:** En desarrollo  
+> **Versión:** 0.5  
+> **Última actualización:** 15 de noviembre de 2026
 
 ---
 
-## 1. Objetivo del proyecto
+## 1. Objetivo
 
 Desarrollar una solución financiera demostrativa que permita implementar y demostrar:
 
 - Autenticación y autorización de usuarios.
 - Administración de cuentas y beneficiarios.
 - Consulta de saldos y movimientos.
+- Registro de ingresos y gastos.
+- Administración de presupuestos.
 - Transferencias internas entre cuentas.
-- Integridad contable y consistencia de saldos.
-- Control de concurrencia e idempotencia.
-- Aplicación web y móvil que consuman la misma API.
-- Pruebas automatizadas y documentación técnica.
+- Integridad de datos y seguridad.
+- Aplicaciones web y móvil que consuman una misma API.
 
 **Importante:** Treo Wallet es una prueba técnica. No realiza transferencias bancarias reales, no tiene conexión con SPEI y no mueve dinero entre instituciones financieras externas.
 
@@ -34,159 +34,182 @@ Desarrollar una solución financiera demostrativa que permita implementar y demo
 | Backend | Node.js, Express y TypeScript |
 | Base de datos | PostgreSQL |
 | ORM | TypeORM |
-| Validación | Zod |
-| API | REST / OpenAPI |
+| Autenticación | JWT |
+| Hash de contraseñas | bcryptjs |
 | Aplicación web | React, TypeScript y Vite |
-| Estado remoto web | TanStack Query |
-| Aplicación móvil | React Native y Expo |
+| Comunicación HTTP | Fetch API |
 | Control de versiones | Git y GitHub |
-| Despliegue propuesto | AWS |
+| Aplicación móvil | Pendiente de implementación |
+| Despliegue | Pendiente |
 
-Las tecnologías indicadas representan la arquitectura objetivo. Algunas todavía están pendientes de configuración e integración.
+## 3. Arquitectura
 
-## 3. Arquitectura general
+La solución mantiene una separación entre frontend, backend y base de datos.
 
-La solución utiliza una arquitectura de monorepo con tres aplicaciones principales:
-
-- **Web:** interfaz para consultar cuentas, administrar beneficiarios y realizar transferencias.
-- **Mobile:** aplicación móvil para consultar saldos, movimientos y realizar transferencias.
-- **API:** servicio central encargado de la autenticación, validación de operaciones y comunicación con PostgreSQL.
+- **Web:** interfaz para administrar cuentas, beneficiarios, presupuestos y movimientos.
+- **API:** gestiona autenticación, validaciones y operaciones de negocio.
+- **PostgreSQL:** almacena usuarios, cuentas, categorías, movimientos, presupuestos y beneficiarios.
+- **Mobile:** aplicación prevista para consumir la misma API; todavía no implementada.
 
 ```mermaid
 flowchart TD
-    A[Usuario] --> B[Aplicación Web]
-    A --> C[Aplicación Móvil]
+    U[Usuario] --> W[Aplicación Web]
+    U -.-> M[Aplicación Móvil<br/>Pendiente]
 
-    B --> D[API REST]
-    C --> D
+    W --> API[API REST<br/>Express + TypeScript]
+    M -.-> API
 
-    D --> E[Autenticación y autorización]
-    D --> F[Gestión de cuentas]
-    D --> G[Beneficiarios]
-    D --> H[Transferencias y Ledger]
+    API --> AUTH[Autenticación JWT]
+    API --> USERS[Usuarios]
+    API --> ACC[ Cuentas ]
+    API --> TRANS[Transacciones]
+    API --> BUD[Presupuestos]
+    API --> BEN[Beneficiarios]
+    API --> DASH[Dashboard]
 
-    E --> I[(PostgreSQL)]
-    F --> I
-    G --> I
-    H --> I
+    AUTH --> DB[(PostgreSQL)]
+    USERS --> DB
+    ACC --> DB
+    TRANS --> DB
+    BUD --> DB
+    BEN --> DB
+    DASH --> DB
 ```
 
-La API será el punto central de validación de las operaciones financieras. Las aplicaciones cliente no modificarán directamente los saldos ni ejecutarán operaciones contables.
+La API es responsable de validar las operaciones y controlar el acceso a los datos. Las aplicaciones cliente no acceden directamente a PostgreSQL.
 
 ## 4. Estructura del proyecto
 
 ```text
 treowallet/
 │
-├── api/                  # Backend y API REST
+├── api/                            # Backend y API REST
+│   ├── src/
+│   │   ├── config/                 # Configuración de TypeORM
+│   │   ├── controllers/            # Lógica de los endpoints
+│   │   ├── entities/               # Entidades de PostgreSQL
+│   │   ├── middleware/             # Autenticación JWT
+│   │   ├── migrations/             # Migraciones
+│   │   ├── routes/                 # Rutas de la API
+│   │   ├── scripts/                # Scripts auxiliares
+│   │   ├── types/                  # Tipos personalizados
+│   │   ├── app.ts
+│   │   └── server.ts
+│   └── package.json
 │
-├── web/                  # Aplicación web con React
-│   └── src/
-│       ├── pages/
-│       │   ├── Login.tsx
-│       │   └── Dashboard.tsx
-│       ├── styles/
-│       │   └── Dashboard.css
-│       ├── App.tsx
-│       ├── App.css
-│       ├── index.css
-│       └── main.tsx
+├── web/                            # Aplicación web React
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── Login.tsx
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Accounts.tsx
+│   │   │   ├── Budgets.tsx
+│   │   │   ├── Beneficiaries.tsx
+│   │   │   └── Transactions.tsx
+│   │   ├── services/
+│   │   │   └── api.ts
+│   │   ├── App.tsx
+│   │   ├── App.css
+│   │   ├── index.css
+│   │   └── main.tsx
+│   └── package.json
 │
-├── mobile/               # Aplicación móvil con Expo
+├── mobile/                         # Aplicación móvil (pendiente)
 │
-├── packages/
-│   └── shared/           # Tipos y utilidades compartidas
-│
-├── specs/                # Especificaciones y planificación
+├── specs/                          # Especificaciones del proyecto
 │   ├── requirements.md
 │   ├── design.md
 │   ├── tasks.md
 │   └── ai-log.md
 │
-├── docs/                 # Documentación técnica
+├── docs/                           # Documentación técnica
 │
-└── README.md              # Documentación general
+└── README.md
 ```
 
-La estructura se irá completando conforme se implementen los módulos del proyecto.
+La estructura representa los módulos principales. Se podrá ampliar conforme avance el desarrollo.
 
-## 5. Funcionalidades principales
+## 5. Funcionalidades
 
-### Autenticación
+### Implementadas y verificadas
 
-- Registro e inicio de sesión.
+**Autenticación**
+- Inicio de sesión.
+- Validación de credenciales.
 - Contraseñas protegidas mediante hash.
-- JWT de corta duración.
-- Refresh tokens rotatorios.
-- Protección de recursos por usuario.
+- Autenticación mediante JWT.
+- Protección de rutas privadas.
 
-### Cuentas
+**Dashboard**
+- Consulta de información del usuario.
+- Consulta de saldo inicial, ingresos, gastos y saldo actual.
+- Visualización de los últimos movimientos.
 
-- Consulta de cuentas asociadas al usuario.
-- Consulta de saldos en pesos mexicanos (MXN).
-- Prevención de saldos negativos.
-- Consistencia entre saldos y movimientos contables.
+**Cuentas**
+- Consulta de cuentas del usuario.
+- Consulta de saldos y movimientos por cuenta.
 
-### Beneficiarios
+**Presupuestos**
+- Consulta de presupuestos.
+- Registro y actualización.
+- Eliminación.
+- Cálculo de gastos y saldo disponible.
 
-- Registro y administración de beneficiarios.
+**Beneficiarios**
+- Registro y consulta.
 - Validación de CLABE de 18 dígitos.
 - Validación matemática del dígito de control.
+- Eliminación de beneficiarios.
 
-### Transferencias
+**Transacciones**
+- Registro de ingresos y gastos.
+- Categorías dinámicas según el tipo de movimiento.
+- Consulta del historial.
+- Filtros por tipo de movimiento.
+- Eliminación de movimientos.
 
-- Transferencias internas entre cuentas de la plataforma.
-- Confirmación previa a la operación.
-- Límite diario configurable.
-- OTP simulado para operaciones que superen un umbral.
-- Claves de idempotencia para prevenir duplicados.
-- Comprobante de operación.
+### Pendientes
 
-### Historial
+- Registro de usuarios desde la interfaz.
+- Transferencias internas entre cuentas.
+- Validación de saldo y control de concurrencia para transferencias.
+- Idempotencia de operaciones financieras.
+- Comprobantes de transferencias.
+- Aplicación móvil.
+- Pruebas automatizadas.
+- Despliegue.
 
-- Consulta de movimientos.
-- Filtros por fecha y tipo.
-- Paginación mediante cursor.
-- Visualización de estados y referencias.
-
-## 6. Estado actual del desarrollo
+## 6. Estado del desarrollo
 
 | Componente | Estado |
 |---|---|
-| Repositorio GitHub | Inicializado |
-| Estructura del monorepo | Creada inicialmente |
-| Node.js | Instalado |
-| PostgreSQL | Instalado |
-| Aplicación web | Inicializada |
-| Login web | Primera interfaz visual |
-| Dashboard web | Primera interfaz visual |
-| API REST | Pendiente |
-| Conexión con PostgreSQL | Pendiente |
-| Autenticación real | Pendiente |
-| Cuentas y saldos | Pendiente |
-| Beneficiarios | Pendiente |
-| Transferencias | Pendiente |
-| Historial de movimientos | Pendiente |
+| Repositorio GitHub | Completado |
+| Backend Express | Completado |
+| Conexión PostgreSQL mediante TypeORM | Completada |
+| Entidades principales | Implementadas |
+| Autenticación JWT | Implementada y verificada |
+| Dashboard web | Implementado y verificado |
+| Cuentas | Implementadas y verificadas |
+| Presupuestos | Implementados y verificados |
+| Beneficiarios | Implementados y verificados |
+| Transacciones | Implementadas y verificadas |
+| Integración web, API y PostgreSQL | Verificada |
 | Aplicación móvil | Pendiente |
+| Transferencias internas | Pendiente |
 | Pruebas automatizadas | Pendiente |
-| Integración completa | Pendiente |
+| Despliegue | Pendiente |
 
-**Nota:** El Login y el Dashboard actuales son interfaces demostrativas. Todavía no existe autenticación real ni conexión con datos financieros del backend.
-
-Para consultar el avance detallado, revisar `specs/tasks.md`.
+Para consultar el seguimiento detallado, revisar `specs/tasks.md`.
 
 ## 7. Requisitos previos
 
-Para trabajar con el proyecto se necesitarán:
-
-- Node.js 20 o superior.
+- Node.js.
 - npm.
-- PostgreSQL 15 o superior.
+- PostgreSQL.
 - Git.
-- Visual Studio Code o editor compatible.
-- Expo Go o un simulador para el desarrollo móvil, cuando se implemente esa aplicación.
+- Visual Studio Code o un editor compatible.
 
-## 8. Instalación y configuración
+## 8. Instalación y ejecución
 
 ### 8.1 Clonar el repositorio
 
@@ -195,106 +218,124 @@ git clone https://github.com/Yair-Blad/treowallet
 cd treowallet
 ```
 
-### 8.2 Instalar dependencias
+### 8.2 Configurar el backend
 
-La instalación definitiva dependerá de la configuración de npm workspaces y de los `package.json` de cada aplicación.
-
-Cuando esté configurado el monorepo, se documentará aquí el comando de instalación correspondiente.
-
-### 8.3 Configurar PostgreSQL
-
-Se utilizará una base de datos local para el desarrollo.
-
-La configuración de conexión se realizará mediante variables de entorno. Los nombres definitivos se documentarán cuando se implemente la configuración del backend.
-
-No subir archivos `.env` con credenciales al repositorio.
-
-### 8.4 Ejecutar la aplicación web
-
-Actualmente, la aplicación web utiliza Vite.
-
-Desde la carpeta `web/`, una vez instaladas sus dependencias:
+Entrar en la carpeta `api/`:
 
 ```bash
+cd api
 npm install
+```
+
+Configurar las variables de entorno necesarias para PostgreSQL, JWT y la conexión con el frontend.
+
+Iniciar el servidor:
+
+```bash
 npm run dev
 ```
 
-Vite mostrará en la terminal la dirección local para abrir la aplicación en el navegador.
+La API estará disponible localmente en:
 
-**Nota:** Los scripts definitivos pueden cambiar al configurar npm workspaces en la raíz.
+```text
+http://localhost:3000
+```
 
-## 9. Seguridad e integridad financiera
+### 8.3 Configurar el frontend
 
-La integridad financiera es una prioridad del proyecto.
+Desde la carpeta `web/`:
 
-Se consideran los siguientes criterios técnicos:
+```bash
+cd web
+npm install
+```
 
-- Las transferencias se ejecutarán dentro de transacciones de PostgreSQL.
-- Se utilizarán bloqueos de cuentas para controlar operaciones concurrentes.
-- Se implementará idempotencia para evitar operaciones duplicadas.
-- Los importes monetarios se manejarán mediante centavos enteros o `NUMERIC`.
-- No se utilizará `Number` de JavaScript para realizar cálculos monetarios.
-- Los movimientos contables deberán mantener débitos y créditos equilibrados.
-- Se implementarán restricciones para impedir saldos negativos.
-- Se mantendrá una bitácora de auditoría append-only.
-- Los logs no deberán exponer contraseñas, tokens ni credenciales.
+Configurar `VITE_API_URL` con la dirección de la API, por ejemplo:
+
+```text
+http://localhost:3000/api
+```
+
+Iniciar Vite:
+
+```bash
+npm run dev
+```
+
+La dirección local de la aplicación se mostrará en la terminal.
+
+### 8.4 Base de datos
+
+La aplicación utiliza PostgreSQL y TypeORM.
+
+La sincronización automática del esquema está deshabilitada (`synchronize: false`). Los cambios estructurales deben gestionarse mediante migraciones.
+
+No subir archivos `.env` ni credenciales al repositorio.
+
+## 9. Seguridad y decisiones técnicas
+
+- Las contraseñas se almacenan mediante hash con bcryptjs.
+- La autenticación utiliza JWT.
+- Las rutas protegidas verifican el token y el usuario autenticado.
+- Las consultas de datos consideran la identidad del usuario.
+- Se utiliza TypeORM para el acceso a PostgreSQL.
+- La sincronización automática del esquema permanece deshabilitada.
+- Los identificadores `BIGINT` y los importes `NUMERIC` se manejan como cadenas en las entidades cuando corresponde, para preservar su precisión.
+
+Las transferencias todavía requieren implementar controles adicionales de integridad financiera, concurrencia e idempotencia antes de considerarse funcionalidad disponible.
 
 ## 10. Pruebas y calidad
 
-El proyecto contempla:
+Hasta el momento se han realizado verificaciones manuales de:
 
-- Pruebas unitarias de lógica de negocio.
-- Pruebas de integración con PostgreSQL real.
-- Pruebas de autenticación y autorización.
-- Pruebas de validación de CLABE.
-- Pruebas de idempotencia.
-- Pruebas de transferencias con fondos insuficientes.
-- Pruebas de concurrencia con 100 transferencias simultáneas.
-- Análisis de consultas con `EXPLAIN ANALYZE` sobre al menos 100,000 movimientos.
-- CI para ejecutar lint y pruebas automatizadas.
+- Inicio de sesión con credenciales correctas e incorrectas.
+- Separación de información entre usuarios.
+- Consulta de saldos y movimientos.
+- Registro y eliminación de beneficiarios.
+- Validación de CLABE.
+- Registro de ingresos y gastos.
+- Cambio dinámico de categorías.
+- Filtros y eliminación de transacciones.
+- Integración entre frontend, backend y PostgreSQL.
+- Compilación de backend y frontend.
+
+Las pruebas automatizadas y de concurrencia siguen pendientes.
 
 ## 11. Documentación
-
-Los documentos del proyecto se encuentran organizados de la siguiente manera:
 
 | Archivo | Descripción |
 |---|---|
 | `specs/requirements.md` | Requisitos funcionales y técnicos |
-| `specs/design.md` | Diseño y arquitectura técnica |
+| `specs/design.md` | Diseño y arquitectura |
 | `specs/tasks.md` | Plan de trabajo y seguimiento |
-| `specs/ai-log.md` | Registro de herramientas y decisiones asistidas por IA |
-| `docs/aws-deploy.md` | Propuesta de arquitectura y despliegue en AWS |
+| `specs/ai-log.md` | Registro breve de asistencia y decisiones de IA |
+| `docs/` | Documentación técnica complementaria |
 
 ## 12. Alcance y limitaciones
 
-Esta versión del proyecto está orientada a una demostración técnica.
+Treo Wallet es una demostración técnica.
 
-No incluye:
+No incluye actualmente:
 
-- Conexión real con SPEI.
-- Transferencias a cuentas bancarias externas.
+- Conexión con SPEI.
+- Transferencias bancarias externas.
 - Integración con instituciones financieras.
 - Movimiento de dinero real.
-- Despliegue productivo en AWS.
+- Despliegue productivo.
 - Validación externa de titularidad de CLABE.
 
 ## 13. Control de versiones
 
-El proyecto utiliza Git para registrar los cambios y relacionar las implementaciones con las tareas correspondientes.
+Se utiliza Git para registrar los cambios y relacionar las implementaciones con las tareas correspondientes.
 
-Se busca mantener commits descriptivos y organizados por funcionalidad.
-
-Ejemplos:
+Ejemplos de convenciones de commits:
 
 ```text
-docs: update project specifications
-chore: configure npm workspaces
-feat(api): initialize express server
-feat(auth): implement user authentication
-feat(web): implement dashboard interface
-feat(transfers): implement internal transfers
-test(transfers): add concurrency tests
+docs: update project documentation
+feat(api): implement transaction endpoints
+feat(web): integrate transactions module
+fix(web): correct dashboard navigation
+test: validate transaction operations
 ```
 
 ## 14. Autoría
@@ -302,59 +343,8 @@ test(transfers): add concurrency tests
 **Proyecto:** Treo Wallet  
 **Tipo:** Prueba técnica  
 **Moneda:** Peso mexicano (MXN)  
-**Repositorio:** GitHub
+**Repositorio:** [GitHub](https://github.com/Yair-Blad/treowallet)
 
 ---
 
-## Decisiones técnicas
-
-Treo Wallet se desarrolla utilizando una arquitectura modular que permita mantener, escalar y extender sus funcionalidades conforme avance el proyecto.
-
-### Stack tecnológico
-
-**Backend**
-- Node.js
-- Express 5
-- TypeScript
-- PostgreSQL
-- JWT para autenticación.
-- bcryptjs para el hashing de contraseñas.
-- dotenv para variables de entorno.
-
-**Frontend**
-- React
-- TypeScript
-- CSS modular por componentes.
-- Diseño adaptable para web y dispositivos móviles.
-
-### Decisiones de arquitectura
-
-- Se utilizará PostgreSQL como sistema de gestión de base de datos.
-- El backend seguirá una arquitectura modular.
-- La autenticación será gestionada mediante JWT.
-- Las contraseñas nunca se almacenarán en texto plano.
-- Se mantendrá una separación entre frontend y backend.
-- Se priorizará la reutilización de componentes.
-- Se buscará mantener compatibilidad entre interfaces web y móviles.
-
-## Criterios para evaluar nuevas sugerencias
-
-Las nuevas propuestas técnicas deberán evaluarse considerando:
-
-1. Seguridad de la información.
-2. Facilidad de mantenimiento.
-3. Escalabilidad.
-4. Compatibilidad con la arquitectura existente.
-5. Tiempo de implementación.
-6. Complejidad técnica.
-7. Beneficio real para el usuario.
-
-Las sugerencias rechazadas podrán reconsiderarse si cambian los requisitos o las necesidades del proyecto.
-
-## Estado del proyecto
-
-El proyecto se encuentra en su etapa inicial de desarrollo.
-
-Las decisiones técnicas podrán actualizarse conforme se completen las funcionalidades y se identifiquen nuevas necesidades.
-
-*Este README se actualizará conforme avance el desarrollo y se incorporen nuevas funcionalidades.*
+*Este documento se actualizará conforme avance el desarrollo del proyecto.*

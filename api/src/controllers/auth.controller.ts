@@ -1,6 +1,7 @@
 
 import { Request, Response } from "express";
-import { pool } from "../config/database";
+import { AppDataSource } from "../config/database";
+import { User } from "../entities/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -20,23 +21,21 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    const result = await pool.query(
-      `SELECT id, first_name, last_name, email,
-              password_hash, is_active
-       FROM users
-       WHERE LOWER(email) = LOWER($1)
-       LIMIT 1`,
-      [email.trim()]
-    );
+    const userRepository = AppDataSource.getRepository(User);
 
-    if (result.rows.length === 0) {
+    const user = await userRepository
+      .createQueryBuilder("user")
+      .where("LOWER(user.email) = LOWER(:email)", {
+        email: email.trim(),
+      })
+      .getOne();
+
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: "Credenciales incorrectas",
       });
     }
-
-    const user = result.rows[0];
 
     if (!user.is_active || !user.password_hash) {
       return res.status(401).json({
@@ -60,13 +59,13 @@ export const login = async (req: Request, res: Response) => {
     const secret = process.env.JWT_SECRET;
 
     if (!secret) {
-    throw new Error("JWT_SECRET no está configurado");
+      throw new Error("JWT_SECRET no está configurado");
     }
 
     const token = jwt.sign(
-    { userId: user.id },
-    secret,
-    { expiresIn: "8h" }
+      { userId: user.id },
+      secret,
+      { expiresIn: "8h" }
     );
 
     return res.status(200).json({
