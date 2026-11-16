@@ -1,0 +1,57 @@
+
+# Dependencias
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Metro
+.metro-health-check*
+.metro/
+
+# Logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# TypeScript
+*.tsbuildinfo
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+
+# Archivos temporales
+*.orig.*
+*.tmp
+
+# Credenciales y certificados
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+*.provisionprofile
+
+# Android generado
+android/.gradle/
+android/app/build/
+android/build/
+
+# iOS generado
+ios/Pods/
+ios/build/

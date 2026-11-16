@@ -10,7 +10,7 @@ import budgetsRoutes from "./routes/budgets.routes";
 import categoriesRoutes from "./routes/categories.routes";
 import accountsRoutes from "./routes/accounts.routes";
 import beneficiariesRoutes from "./routes/beneficiaries.routes";
-import transactionsRoutes from "./routes/transactions.routes"
+import transactionsRoutes from "./routes/transactions.routes";
 
 const app = express();
 

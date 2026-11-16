@@ -1,8 +1,8 @@
 # Treo Wallet — Requisitos
 
 **Estado:** En desarrollo  
-**Versión:** 0.5  
-**Fecha:** 15 de noviembre de 2026  
+**Versión:** 0.6  
+**Fecha:** 16 de noviembre de 2026  
 **Producto:** Billetera digital en pesos mexicanos (MXN)
 
 ---
@@ -62,6 +62,11 @@ El objetivo es entregar una solución funcional que demuestre conocimientos de d
 - Evitar transferencias duplicadas mediante claves de idempotencia.
 - Informar claramente si la operación fue exitosa, rechazada o quedó en un estado pendiente de resolución.
 - No permitir transferencias a cuentas externas ni afirmar que se ejecutó una operación SPEI.
+
+<!-- - Implementación del endpoint de transferencias simuladas.
+- Registro de transferencias asociado a beneficiarios y cuentas.
+- Descuento del importe mediante una transacción de tipo gasto.
+- Primera transferencia validada correctamente mediante Postman. -->
 
 ### 2.5 Historial
 
@@ -395,3 +400,5 @@ Las siguientes decisiones deberán confirmarse en `design.md` antes de implement
 | 0.3 | 11/11/2026 | Creación de la base de datos en PostgreSQL, integración y conexión con el backend de Treo Wallet, e implementación del hash de contraseñas para su almacenamiento seguro. |
 | 0.4 | 11/11/2026 | Integración y conexión entre el backend, la base de datos PostgreSQL y el frontend de Treo Wallet. |
 | 0.5 | 15/11/2026 | Implementación e integración de los módulos web de cuentas, presupuestos, beneficiarios y movimientos, con validaciones y pruebas manuales. |
+| 0.6 | 15/11/2026 | Implementación y pruebas manuales de transferencias simuladas en el backend: validación de saldo, idempotencia y concurrencia. |
+| 0.6.1 | 16/11/2026 | Actualización del plan de trabajo según las pruebas realizadas de transferencias y el avance de la aplicación móvil. |
