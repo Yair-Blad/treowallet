@@ -1,84 +1,88 @@
+
 name: TreoWallet CI
 
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches:
-            - main
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-    api:
-        name: API - Build
-        runs-on: ubuntu-latest
+  api:
+    name: API - Build
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Descargar repositorio
-              uses: actions/checkout@v4
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
 
-            - name: Configurar Node.js
-              uses: actions/setup-node@v4
-              with:
-                node-version: 22
-                cache: npm
-                cache-dependency-path: api/package-lock.json
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: api/package-lock.json
 
-            - name: Instalar dependencias
-              working-directory: api
-              run: npm run build
-            
-    web:
-        name: Web - Lint y Build
-        runs-on: ubuntu-latest
+      - name: Instalar dependencias
+        working-directory: api
+        run: npm ci
 
-        steps:
-            - name: Descargar repositorio
-              uses: actions/chechout@v4
+      - name: Compilar API
+        working-directory: api
+        run: npm run build
 
-            - name: Configurar Node.js
-              uses: actions/setup-node@v4
-              with:
-                node-version: 22
-                cache: npm
-                cache-dependency-path: web/package-lock.json
+  web:
+    name: Web - Lint y Build
+    runs-on: ubuntu-latest
 
-            - name: Instalar dependencias
-              working-directory: web
-              run: npm ci
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
 
-            - name: Ejecutar lint
-              working-directory: web
-              run: npm run lint
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
 
-            - name: Compilar web
-              working-directory: web
-              run: npm run build
-    
-    mobile:
-        name: Mobile . Lint y TypeScript
-        runs-on: ubuntu-latest
+      - name: Instalar dependencias
+        working-directory: web
+        run: npm ci
 
-        steps:
-            - name: Descargar repositorio
-              uses: actions/checkout@v4
+      - name: Ejecutar lint
+        working-directory: web
+        run: npm run lint
 
-            - name: Configurar Node.js
-              uses: actions/setup-node@v4
-              with:
-                node-version: 22
-                cache: npm
-                cache-dependency-path: mobile/package-lock.json
+      - name: Compilar Web
+        working-directory: web
+        run: npm run build
 
-            - name: Instalar dependencias
-              working-directory: mobile
-              run: npm ci
+  mobile:
+    name: Mobile - Lint y TypeScript
+    runs-on: ubuntu-latest
 
-            - name: Ejecutar lint
-              working-directory: mobile
-              run: npm run lint
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
 
-            - name: verificar Typescript
-              working-directory: mobile
-              run: npm tsc --noEmit
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
 
+      - name: Instalar dependencias
+        working-directory: mobile
+        run: npm ci
+
+      - name: Ejecutar lint
+        working-directory: mobile
+        run: npm run lint
+
+      - name: Verificar TypeScript
+        working-directory: mobile
+        run: npx tsc --noEmit
