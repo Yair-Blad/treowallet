@@ -183,11 +183,11 @@
 
 ## Fase 8 — Documentación, CI y entrega
 
-- [ ] Completar OpenAPI y habilitar documentación local.
+- [x] Completar OpenAPI y habilitar documentación local.
 - [x] Completar README de instalación y ejecución.
-- [~] Completar diagrama Mermaid de arquitectura.
-- [ ] Configurar CI para lint y pruebas.
-- [ ] Revisar historial de commits y relación con tareas.
+- [x] Completar diagrama Mermaid de arquitectura.
+- [x] Configurar CI para lint y pruebas.
+- [x] Revisar historial de commits y relación con tareas.
 - [x] Actualizar `ai-log.md`.
 - [ ] Grabar video demostrativo de aproximadamente cinco minutos.
 - [ ] Realizar revisión final de seguridad, integridad y funcionamiento.

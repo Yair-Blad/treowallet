@@ -55,29 +55,38 @@ La solución mantiene una separación entre frontend, backend y base de datos.
 
 ```mermaid
 flowchart TD
-    U[Usuario] --> W[Aplicación Web]
-    U --> M[Aplicación Móvil]
+    U["Usuario"]
 
-    W --> API[API REST<br/>Express + TypeScript]
-    M --> API
+    subgraph CLIENTES["Aplicaciones cliente"]
+        WEB["Web<br/>React + TypeScript + Vite"]
+        MOBILE["Móvil<br/>React Native + Expo"]
+    end
 
-    API --> AUTH[Autenticación JWT]
-    API --> USERS[Usuarios]
-    API --> ACC[Cuentas]
-    API --> TRANS[Transacciones]
-    API --> TRANSF[Transferencias]
-    API --> BUD[Presupuestos]
-    API --> BEN[Beneficiarios]
-    API --> DASH[Dashboard]
+    subgraph BACKEND["Backend - Node.js + Express + TypeScript"]
+        API["API REST"]
+        AUTH["Autenticación<br/>JWT"]
+        ROUTES["Rutas"]
+        CONTROLLERS["Controladores"]
+        ORM["TypeORM"]
+    end
 
-    AUTH --> DB[(PostgreSQL)]
-    USERS --> DB
-    ACC --> DB
-    TRANS --> DB
-    TRANSF --> DB
-    BUD --> DB
-    BEN --> DB
-    DASH --> DB
+    DB[("PostgreSQL")]
+
+    U --> WEB
+    U --> MOBILE
+
+    WEB -->|"HTTP / JSON"| API
+    MOBILE -->|"HTTP / JSON"| API
+
+    API --> AUTH
+    API --> ROUTES
+    ROUTES --> CONTROLLERS
+    CONTROLLERS --> ORM
+    ORM --> DB
+
+    AUTH -.->|"Token JWT"| WEB
+    AUTH -.->|"Token JWT"| MOBILE
+
 ```
 
 La API es responsable de validar las operaciones y controlar el acceso a los datos. Las aplicaciones cliente no acceden directamente a PostgreSQL.

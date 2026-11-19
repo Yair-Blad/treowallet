@@ -1,0 +1,520 @@
+
+openapi: 3.0.3
+
+info:
+  title: TreoWallet API
+  description: API REST para la administración de usuarios, cuentas, transacciones, presupuestos y beneficiarios de TreoWallet.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local de desarrollo
+
+tags:
+  - name: General
+  - name: Autenticación
+  - name: Usuarios
+  - name: Dashboard
+  - name: Cuentas
+  - name: Categorías
+  - name: Presupuestos
+  - name: Beneficiarios
+  - name: Transacciones
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Error en la solicitud
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: usuario@correo.com
+        password:
+          type: string
+          example: contraseña123
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Inicio de sesión correcto
+        token:
+          type: string
+          description: JWT válido durante 8 horas
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            firstName:
+              type: string
+            lastName:
+              type: string
+            email:
+              type: string
+              format: email
+
+    BeneficiaryRequest:
+      type: object
+      required:
+        - beneficiary_name
+        - alias
+        - clabe
+      properties:
+        beneficiary_name:
+          type: string
+          example: Juan Pérez
+        alias:
+          type: string
+          example: Cuenta personal
+        clabe:
+          type: string
+          minLength: 18
+          maxLength: 18
+          example: "012345678901234567"
+
+    BudgetRequest:
+      type: object
+      required:
+        - categoryId
+        - amount
+        - budgetMonth
+      properties:
+        categoryId:
+          type: integer
+          example: 1
+        amount:
+          type: number
+          exclusiveMinimum: 0
+          example: 5000
+        budgetMonth:
+          type: string
+          format: date
+          example: "2026-11-01"
+
+    TransferRequest:
+      type: object
+      required:
+        - beneficiary_id
+        - account_id
+        - amount
+      properties:
+        beneficiary_id:
+          type: integer
+          example: 4
+        account_id:
+          type: integer
+          example: 1
+        amount:
+          type: number
+          exclusiveMinimum: 0
+          example: 300
+
+paths:
+  /:
+    get:
+      tags:
+        - General
+      summary: Estado general de la API
+      responses:
+        "200":
+          description: API activa
+
+  /api/health:
+    get:
+      tags:
+        - General
+      summary: Comprobar disponibilidad de la API
+      responses:
+        "200":
+          description: API activa
+
+  /api/auth/login:
+    post:
+      tags:
+        - Autenticación
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Inicio de sesión correcto
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          description: Datos obligatorios faltantes
+        "401":
+          description: Credenciales incorrectas o usuario inactivo
+        "500":
+          description: Error interno
+
+  /api/users/me:
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener perfil del usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Perfil del usuario
+        "401":
+          description: Token no proporcionado o inválido
+        "404":
+          description: Usuario no encontrado
+
+  /api/dashboard:
+    get:
+      tags:
+        - Dashboard
+      summary: Obtener resumen del dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Resumen financiero y transacciones recientes
+        "401":
+          description: No autorizado
+
+  /api/accounts:
+    get:
+      tags:
+        - Cuentas
+      summary: Obtener cuentas del usuario
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de cuentas y balances
+        "401":
+          description: No autorizado
+
+  /api/categories:
+    get:
+      tags:
+        - Categorías
+      summary: Obtener categorías
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - income
+              - expense
+            default: expense
+      responses:
+        "200":
+          description: Lista de categorías
+        "400":
+          description: Tipo de categoría inválido
+        "401":
+          description: No autorizado
+
+  /api/budgets:
+    get:
+      tags:
+        - Presupuestos
+      summary: Obtener presupuestos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          required: false
+          description: Primer día del mes en formato YYYY-MM-01
+          schema:
+            type: string
+            example: "2026-11-01"
+      responses:
+        "200":
+          description: Lista de presupuestos
+        "400":
+          description: Mes inválido
+
+    post:
+      tags:
+        - Presupuestos
+      summary: Crear o guardar un presupuesto
+      description: Guarda o actualiza el presupuesto correspondiente a la categoría y al mes.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetRequest"
+      responses:
+        "201":
+          description: Presupuesto guardado
+        "400":
+          description: Datos inválidos
+
+  /api/budgets/{id}:
+    put:
+      tags:
+        - Presupuestos
+      summary: Actualizar un presupuesto
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                  exclusiveMinimum: 0
+                  example: 6000
+      responses:
+        "200":
+          description: Presupuesto actualizado
+        "400":
+          description: Datos inválidos
+        "404":
+          description: Presupuesto no encontrado
+
+    delete:
+      tags:
+        - Presupuestos
+      summary: Eliminar un presupuesto
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Presupuesto eliminado
+        "404":
+          description: Presupuesto no encontrado
+
+  /api/beneficiaries:
+    get:
+      tags:
+        - Beneficiarios
+      summary: Obtener beneficiarios
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Lista de beneficiarios
+
+    post:
+      tags:
+        - Beneficiarios
+      summary: Registrar beneficiario
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BeneficiaryRequest"
+      responses:
+        "201":
+          description: Beneficiario registrado
+        "400":
+          description: Datos o CLABE inválidos
+        "409":
+          description: Beneficiario ya registrado
+
+  /api/beneficiaries/{id}:
+    delete:
+      tags:
+        - Beneficiarios
+      summary: Eliminar beneficiario
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Beneficiario eliminado
+        "404":
+          description: Beneficiario no encontrado
+
+  /api/transactions:
+    get:
+      tags:
+        - Transacciones
+      summary: Obtener transacciones
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Lista de transacciones
+
+    post:
+      tags:
+        - Transacciones
+      summary: Registrar transacción
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account_id:
+                  type: integer
+                category_id:
+                  type: integer
+                description:
+                  type: string
+                transaction_type:
+                  type: string
+                amount:
+                  type: number
+                transaction_date:
+                  type: string
+                  format: date
+      responses:
+        "201":
+          description: Transacción registrada
+        "400":
+          description: Datos inválidos
+
+  /api/transactions/transfer:
+    post:
+      tags:
+        - Transacciones
+      summary: Transferir dinero a un beneficiario
+      description: Registra una transferencia simulada dentro de TreoWallet. No realiza una operación SPEI ni acredita fondos en una cuenta bancaria externa.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Clave única que debe reutilizarse al reintentar la misma operación.
+          schema:
+            type: string
+            example: "770e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+      responses:
+        "201":
+          description: Transferencia realizada
+        "200":
+          description: Resultado de una solicitud repetida con la misma clave y datos
+        "400":
+          description: Saldo insuficiente o datos inválidos
+        "401":
+          description: No autorizado
+        "409":
+          description: La clave de idempotencia ya fue utilizada con datos diferentes
+
+  /api/transactions/transfer/status:
+    get:
+      tags:
+        - Transacciones
+      summary: Consultar estado de transferencia
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Estado de la transferencia
+        "400":
+          description: Clave de idempotencia no proporcionada
+
+  /api/transactions/{id}:
+    delete:
+      tags:
+        - Transacciones
+      summary: Eliminar transacción
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transacción eliminada
+        "404":
+          description: Transacción no encontrada

@@ -11,8 +11,28 @@ import categoriesRoutes from "./routes/categories.routes";
 import accountsRoutes from "./routes/accounts.routes";
 import beneficiariesRoutes from "./routes/beneficiaries.routes";
 import transactionsRoutes from "./routes/transactions.routes";
+import swaggerUi from "swagger-ui-express";
+import fs from "node:fs";
+import path from "node:path";
+import YAML from "yaml";
 
 const app = express();
+
+const openapiPath = path.resolve(
+  process.cwd(),
+  "docs",
+  "openapi.yaml"
+);
+
+const openapiDocument = YAML.parse(
+  fs.readFileSync(openapiPath, "utf8")
+);
+
+app.use(
+  "/api/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(openapiDocument)
+);
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:5173",

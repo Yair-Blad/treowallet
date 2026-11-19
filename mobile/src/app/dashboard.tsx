@@ -39,9 +39,9 @@ export default function DashboardScreen() {
 
   const loadDashboard = useCallback(async () => {
     try {
-      setError("");
-
       const token = await SecureStore.getItemAsync("treowallet_token");
+
+      setError("");
 
       if (!token) {
         router.replace("/");
@@ -68,7 +68,7 @@ export default function DashboardScreen() {
   }, []);
 
   useEffect(() => {
-    loadDashboard();
+    void Promise.resolve().then(() => loadDashboard());
   }, [loadDashboard]);
 
   const onRefresh = () => {

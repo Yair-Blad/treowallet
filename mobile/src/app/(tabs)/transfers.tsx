@@ -51,11 +51,9 @@ export default function TransfersScreen() {
 
   const loadData = useCallback(async () => {
     try {
-      setLoading(true);
-      setError("");
-
       const token = await SecureStore.getItemAsync("treowallet_token");
 
+      setError("");
       if (!token) {
         router.replace("/");
         return;
@@ -98,7 +96,7 @@ export default function TransfersScreen() {
   }, []);
 
   useEffect(() => {
-    loadData();
+    void Promise.resolve().then(() => loadData());
   }, [loadData]);
 
   const normalizeAmount = (value: string): string | null => {
